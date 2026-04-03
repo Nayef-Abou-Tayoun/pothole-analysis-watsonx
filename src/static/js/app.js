@@ -1,4 +1,8 @@
 // Global variables
+let uploadedVideoFile = null;
+let videoObjectURL = null;
+
+// Global variables
 let analysisData = null;
 
 // DOM Elements
@@ -15,9 +19,11 @@ const analyzeBtn = document.getElementById('analyzeBtn');
 videoFileInput.addEventListener('change', (e) => {
     const file = e.target.files[0];
     if (file) {
+        uploadedVideoFile = file;
         fileNameSpan.textContent = file.name;
         fileNameSpan.style.color = '#0f62fe';
     } else {
+        uploadedVideoFile = null;
         fileNameSpan.textContent = 'Choose Video File';
         fileNameSpan.style.color = '';
     }
@@ -167,6 +173,9 @@ function displayPotholeList(potholes) {
     }
 
     potholes.forEach((pothole, index) => {
+
+    // Setup video player
+    setupVideoPlayer(analysis.ranked_potholes || []);
         const cardHTML = `
             <div class="pothole-card">
                 <div class="pothole-header">
@@ -251,6 +260,20 @@ function resetAnalysis() {
     fileNameSpan.textContent = 'Choose Video File';
     fileNameSpan.style.color = '';
     analysisData = null;
+    uploadedVideoFile = null;
+    
+    // Clean up video player
+    const videoPlayer = document.getElementById('videoPlayer');
+    if (videoPlayer) {
+        videoPlayer.pause();
+        videoPlayer.src = '';
+    }
+    
+    if (videoObjectURL) {
+        URL.revokeObjectURL(videoObjectURL);
+        videoObjectURL = null;
+    }
+    
     showSection('upload');
 }
 
@@ -276,3 +299,73 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Made with Bob
+
+// Setup video player with pothole markers
+function setupVideoPlayer(potholes) {
+    if (!uploadedVideoFile) return;
+
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoSource = document.getElementById('videoSource');
+    const timelineMarkers = document.getElementById('timelineMarkers');
+    const currentDetection = document.getElementById('currentDetection');
+    const detectionInfo = document.getElementById('detectionInfo');
+
+    // Clean up previous video URL
+    if (videoObjectURL) {
+        URL.revokeObjectURL(videoObjectURL);
+    }
+
+    // Create object URL for uploaded video
+    videoObjectURL = URL.createObjectURL(uploadedVideoFile);
+    videoSource.src = videoObjectURL;
+    videoPlayer.load();
+
+    // Clear existing markers
+    timelineMarkers.innerHTML = '';
+
+    // Get video duration and create markers
+    videoPlayer.addEventListener('loadedmetadata', () => {
+        const duration = videoPlayer.duration;
+
+        // Create timeline markers for each pothole
+        potholes.forEach((pothole, index) => {
+            const timestamp = pothole.frame_info?.timestamp || 0;
+            const position = (timestamp / duration) * 100;
+
+            const marker = document.createElement('div');
+            marker.className = `timeline-marker ${pothole.severity || 'low'}`;
+            marker.style.left = `${position}%`;
+            marker.dataset.time = formatTimestamp(timestamp);
+            marker.dataset.index = index;
+            marker.title = `${pothole.severity?.toUpperCase()} - ${formatTimestamp(timestamp)}`;
+
+            // Click marker to jump to that time
+            marker.addEventListener('click', () => {
+                videoPlayer.currentTime = timestamp;
+                videoPlayer.play();
+            });
+
+            timelineMarkers.appendChild(marker);
+        });
+    });
+
+    // Show detection alert when video reaches pothole timestamp
+    videoPlayer.addEventListener('timeupdate', () => {
+        const currentTime = videoPlayer.currentTime;
+        let detectionShown = false;
+
+        potholes.forEach((pothole) => {
+            const timestamp = pothole.frame_info?.timestamp || 0;
+            // Show alert if within 1 second of pothole
+            if (Math.abs(currentTime - timestamp) < 1) {
+                detectionInfo.textContent = `${pothole.severity?.toUpperCase()} severity at ${pothole.location || 'unknown location'}`;
+                currentDetection.style.display = 'block';
+                detectionShown = true;
+            }
+        });
+
+        if (!detectionShown) {
+            currentDetection.style.display = 'none';
+        }
+    });
+}

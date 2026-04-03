@@ -467,6 +467,136 @@ body {
 .actions {
     display: flex;
     gap: 1rem;
+
+/* Video Player Section */
+.video-section {
+    background: var(--card-bg);
+    border-radius: 16px;
+    padding: 2rem;
+    box-shadow: var(--shadow);
+    margin-bottom: 2rem;
+}
+
+.video-section h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    margin-bottom: 1.5rem;
+    font-size: 1.5rem;
+}
+
+.video-player-container {
+    position: relative;
+    background: #000;
+    border-radius: 12px;
+    overflow: hidden;
+}
+
+#videoPlayer {
+    width: 100%;
+    max-height: 600px;
+    display: block;
+}
+
+.video-controls {
+    position: relative;
+    background: var(--secondary-color);
+    padding: 0.5rem;
+}
+
+.timeline-markers {
+    position: relative;
+    height: 8px;
+    background: rgba(255, 255, 255, 0.2);
+    border-radius: 4px;
+    overflow: visible;
+}
+
+.timeline-marker {
+    position: absolute;
+    width: 4px;
+    height: 16px;
+    top: -4px;
+    border-radius: 2px;
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.timeline-marker:hover {
+    height: 20px;
+    top: -6px;
+}
+
+.timeline-marker.critical {
+    background: var(--danger-color);
+}
+
+.timeline-marker.high {
+    background: var(--warning-color);
+}
+
+.timeline-marker.medium {
+    background: var(--primary-color);
+}
+
+.timeline-marker.low {
+    background: var(--success-color);
+}
+
+.timeline-marker:hover::after {
+    content: attr(data-time);
+    position: absolute;
+    bottom: 100%;
+    left: 50%;
+    transform: translateX(-50%);
+    background: rgba(0, 0, 0, 0.9);
+    color: white;
+    padding: 0.25rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.75rem;
+    white-space: nowrap;
+    margin-bottom: 4px;
+}
+
+.current-detection {
+    position: absolute;
+    top: 1rem;
+    left: 1rem;
+    right: 1rem;
+    z-index: 10;
+    animation: slideInDown 0.3s ease-out;
+}
+
+.detection-alert {
+    background: rgba(218, 30, 40, 0.95);
+    color: white;
+    padding: 1rem 1.5rem;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    gap: 0.75rem;
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
+    font-size: 1rem;
+}
+
+.detection-alert i {
+    font-size: 1.5rem;
+}
+
+.detection-alert strong {
+    margin-right: 0.5rem;
+}
+
+@keyframes slideInDown {
+    from {
+        opacity: 0;
+        transform: translateY(-20px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
     justify-content: center;
     flex-wrap: wrap;
     margin-top: 2rem;

@@ -30,10 +30,13 @@ RUN mkdir -p /app/output /app/samples /app/uploads
 
 # Set environment variables
 ENV PYTHONUNBUFFERED=1
-ENV PYTHONPATH=/app
+ENV PYTHONPATH=/app/src
 
 # Expose port for web interface
 EXPOSE 8080
 
+# Set working directory to src for imports
+WORKDIR /app/src
+
 # Run the Flask API with gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "300", "src.api:app"]
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "300", "api:app"]

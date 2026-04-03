@@ -9,6 +9,7 @@ from flask import Flask, request, jsonify, send_file, render_template
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 import traceback
+from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from video_processor import VideoProcessor
 from pothole_analyzer import PotholeAnalyzer
@@ -169,13 +170,44 @@ def analyze_video():
         # Extract frames
         extracted_frames = video_processor.extract_frames(video_path, frames_dir)
         
-        # Analyze frames
+        # Analyze frames in parallel using ThreadPoolExecutor
+        # Use max_workers based on available CPUs (default to 4, max 8)
+        max_workers = min(int(os.getenv('MAX_WORKERS', '4')), 8)
         analyses = []
-        for frame_path, frame_number, timestamp in extracted_frames:
-            analysis = pothole_analyzer.analyze_frame(
-                frame_path, frame_number, timestamp
-            )
-            analyses.append(analysis)
+        
+        print(f"Analyzing {len(extracted_frames)} frames using {max_workers} parallel workers...")
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            # Submit all frame analysis tasks
+            future_to_frame = {
+                executor.submit(
+                    pothole_analyzer.analyze_frame,
+                    frame_path,
+                    frame_number,
+                    timestamp
+                ): (frame_path, frame_number, timestamp)
+                for frame_path, frame_number, timestamp in extracted_frames
+            }
+            
+            # Collect results as they complete
+            for future in as_completed(future_to_frame):
+                frame_info = future_to_frame[future]
+                try:
+                    analysis = future.result()
+                    analyses.append(analysis)
+                    print(f"Completed frame {frame_info[1]}/{len(extracted_frames)}")
+                except Exception as e:
+                    print(f"Error analyzing frame {frame_info[1]}: {str(e)}")
+                    analyses.append({
+                        'frame_path': frame_info[0],
+                        'frame_number': frame_info[1],
+                        'timestamp': frame_info[2],
+                        'error': str(e),
+                        'potholes_detected': False
+                    })
+        
+        # Sort analyses by frame number to maintain order
+        analyses.sort(key=lambda x: x.get('frame_number', 0))
         
         # Generate report
         report = pothole_analyzer.generate_maintenance_report(analyses, video_path)
@@ -253,12 +285,41 @@ def analyze_video_url():
         
         extracted_frames = video_processor.extract_frames(video_path, frames_dir)
         
+        # Analyze frames in parallel
+        max_workers = min(int(os.getenv('MAX_WORKERS', '4')), 8)
         analyses = []
-        for frame_path, frame_number, timestamp in extracted_frames:
-            analysis = pothole_analyzer.analyze_frame(
-                frame_path, frame_number, timestamp
-            )
-            analyses.append(analysis)
+        
+        print(f"Analyzing {len(extracted_frames)} frames using {max_workers} parallel workers...")
+        
+        with ThreadPoolExecutor(max_workers=max_workers) as executor:
+            future_to_frame = {
+                executor.submit(
+                    pothole_analyzer.analyze_frame,
+                    frame_path,
+                    frame_number,
+                    timestamp
+                ): (frame_path, frame_number, timestamp)
+                for frame_path, frame_number, timestamp in extracted_frames
+            }
+            
+            for future in as_completed(future_to_frame):
+                frame_info = future_to_frame[future]
+                try:
+                    analysis = future.result()
+                    analyses.append(analysis)
+                    print(f"Completed frame {frame_info[1]}/{len(extracted_frames)}")
+                except Exception as e:
+                    print(f"Error analyzing frame {frame_info[1]}: {str(e)}")
+                    analyses.append({
+                        'frame_path': frame_info[0],
+                        'frame_number': frame_info[1],
+                        'timestamp': frame_info[2],
+                        'error': str(e),
+                        'potholes_detected': False
+                    })
+        
+        # Sort analyses by frame number
+        analyses.sort(key=lambda x: x.get('frame_number', 0))
         
         report = pothole_analyzer.generate_maintenance_report(analyses, video_path)
         video_info = video_processor.get_video_info(video_path)

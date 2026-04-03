@@ -87,6 +87,7 @@ if ibmcloud ce app get --name $APP_NAME &> /dev/null; then
         --env WATSONX_URL=${WATSONX_URL:-"https://us-south.ml.cloud.ibm.com"} \
         --env VISION_MODEL_ID=${VISION_MODEL_ID:-"meta-llama/llama-3-2-90b-vision-instruct"} \
         --env FRAME_EXTRACTION_RATE=${FRAME_EXTRACTION_RATE:-"1"} \
+        --env MAX_WORKERS=${MAX_WORKERS:-"4"} \
         --cpu 2 \
         --memory 4G \
         --min-scale 0 \
@@ -102,6 +103,7 @@ else
         --env WATSONX_URL=${WATSONX_URL:-"https://us-south.ml.cloud.ibm.com"} \
         --env VISION_MODEL_ID=${VISION_MODEL_ID:-"meta-llama/llama-3-2-90b-vision-instruct"} \
         --env FRAME_EXTRACTION_RATE=${FRAME_EXTRACTION_RATE:-"1"} \
+        --env MAX_WORKERS=${MAX_WORKERS:-"4"} \
         --cpu 2 \
         --memory 4G \
         --min-scale 0 \

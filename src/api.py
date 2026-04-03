@@ -243,16 +243,29 @@ def analyze_video():
         print(f"Analysis complete: {len(analyses)} frames processed")
         
         # Generate report
-        report = pothole_analyzer.generate_maintenance_report(analyses, video_path)
+        print("Generating maintenance report...")
+        try:
+            report = pothole_analyzer.generate_maintenance_report(analyses, video_path)
+            print("Report generated successfully")
+        except Exception as e:
+            print(f"Error generating report: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            raise
         
         # Add video info
+        print("Adding video info...")
         video_info = video_processor.get_video_info(video_path)
         report['video_info'] = video_info
+        print("Video info added")
         
         # Clean up uploaded file
+        print("Cleaning up files...")
         os.remove(video_path)
+        print("Cleanup complete")
         
         # Return analysis
+        print("Sending response...")
         return jsonify({
             'success': True,
             'filename': filename,

@@ -170,44 +170,77 @@ def analyze_video():
         # Extract frames
         extracted_frames = video_processor.extract_frames(video_path, frames_dir)
         
-        # Analyze frames in parallel using ThreadPoolExecutor
-        # Use max_workers based on available CPUs (default to 4, max 8)
+        # Analyze frames with parallel processing and fallback
         max_workers = min(int(os.getenv('MAX_WORKERS', '4')), 8)
+        use_parallel = os.getenv('USE_PARALLEL', 'true').lower() == 'true'
         analyses = []
         
-        print(f"Analyzing {len(extracted_frames)} frames using {max_workers} parallel workers...")
-        
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            # Submit all frame analysis tasks
-            future_to_frame = {
-                executor.submit(
-                    pothole_analyzer.analyze_frame,
-                    frame_path,
-                    frame_number,
-                    timestamp
-                ): (frame_path, frame_number, timestamp)
-                for frame_path, frame_number, timestamp in extracted_frames
-            }
+        if use_parallel and len(extracted_frames) > 1:
+            print(f"Analyzing {len(extracted_frames)} frames using {max_workers} parallel workers...")
             
-            # Collect results as they complete
-            for future in as_completed(future_to_frame):
-                frame_info = future_to_frame[future]
+            try:
+                # Use ThreadPoolExecutor with timeout protection
+                with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                    # Submit all frame analysis tasks
+                    future_to_frame = {
+                        executor.submit(
+                            pothole_analyzer.analyze_frame,
+                            frame_path,
+                            frame_number,
+                            timestamp
+                        ): (frame_path, frame_number, timestamp)
+                        for frame_path, frame_number, timestamp in extracted_frames
+                    }
+                    
+                    # Collect results with timeout (60 seconds per frame)
+                    for future in as_completed(future_to_frame, timeout=60*len(extracted_frames)):
+                        frame_info = future_to_frame[future]
+                        try:
+                            analysis = future.result(timeout=60)
+                            analyses.append(analysis)
+                            print(f"✓ Completed frame {frame_info[1]}/{len(extracted_frames)}")
+                        except Exception as e:
+                            print(f"✗ Error analyzing frame {frame_info[1]}: {str(e)}")
+                            analyses.append({
+                                'frame_path': frame_info[0],
+                                'frame_number': frame_info[1],
+                                'timestamp': frame_info[2],
+                                'error': str(e),
+                                'potholes_detected': False
+                            })
+                
+                print(f"Parallel processing completed: {len(analyses)} frames analyzed")
+                
+            except Exception as e:
+                print(f"Parallel processing failed: {str(e)}")
+                print("Falling back to sequential processing...")
+                analyses = []
+                use_parallel = False
+        
+        # Fallback to sequential processing if parallel fails or disabled
+        if not use_parallel or len(analyses) == 0:
+            print(f"Analyzing {len(extracted_frames)} frames sequentially...")
+            for i, (frame_path, frame_number, timestamp) in enumerate(extracted_frames, 1):
                 try:
-                    analysis = future.result()
+                    print(f"Processing frame {i}/{len(extracted_frames)}...")
+                    analysis = pothole_analyzer.analyze_frame(
+                        frame_path, frame_number, timestamp
+                    )
                     analyses.append(analysis)
-                    print(f"Completed frame {frame_info[1]}/{len(extracted_frames)}")
+                    print(f"✓ Completed frame {i}/{len(extracted_frames)}")
                 except Exception as e:
-                    print(f"Error analyzing frame {frame_info[1]}: {str(e)}")
+                    print(f"✗ Error analyzing frame {i}: {str(e)}")
                     analyses.append({
-                        'frame_path': frame_info[0],
-                        'frame_number': frame_info[1],
-                        'timestamp': frame_info[2],
+                        'frame_path': frame_path,
+                        'frame_number': frame_number,
+                        'timestamp': timestamp,
                         'error': str(e),
                         'potholes_detected': False
                     })
         
         # Sort analyses by frame number to maintain order
         analyses.sort(key=lambda x: x.get('frame_number', 0))
+        print(f"Analysis complete: {len(analyses)} frames processed")
         
         # Generate report
         report = pothole_analyzer.generate_maintenance_report(analyses, video_path)
@@ -285,41 +318,72 @@ def analyze_video_url():
         
         extracted_frames = video_processor.extract_frames(video_path, frames_dir)
         
-        # Analyze frames in parallel
+        # Analyze frames with parallel processing and fallback
         max_workers = min(int(os.getenv('MAX_WORKERS', '4')), 8)
+        use_parallel = os.getenv('USE_PARALLEL', 'true').lower() == 'true'
         analyses = []
         
-        print(f"Analyzing {len(extracted_frames)} frames using {max_workers} parallel workers...")
-        
-        with ThreadPoolExecutor(max_workers=max_workers) as executor:
-            future_to_frame = {
-                executor.submit(
-                    pothole_analyzer.analyze_frame,
-                    frame_path,
-                    frame_number,
-                    timestamp
-                ): (frame_path, frame_number, timestamp)
-                for frame_path, frame_number, timestamp in extracted_frames
-            }
+        if use_parallel and len(extracted_frames) > 1:
+            print(f"Analyzing {len(extracted_frames)} frames using {max_workers} parallel workers...")
             
-            for future in as_completed(future_to_frame):
-                frame_info = future_to_frame[future]
+            try:
+                with ThreadPoolExecutor(max_workers=max_workers) as executor:
+                    future_to_frame = {
+                        executor.submit(
+                            pothole_analyzer.analyze_frame,
+                            frame_path,
+                            frame_number,
+                            timestamp
+                        ): (frame_path, frame_number, timestamp)
+                        for frame_path, frame_number, timestamp in extracted_frames
+                    }
+                    
+                    for future in as_completed(future_to_frame, timeout=60*len(extracted_frames)):
+                        frame_info = future_to_frame[future]
+                        try:
+                            analysis = future.result(timeout=60)
+                            analyses.append(analysis)
+                            print(f"✓ Completed frame {frame_info[1]}/{len(extracted_frames)}")
+                        except Exception as e:
+                            print(f"✗ Error analyzing frame {frame_info[1]}: {str(e)}")
+                            analyses.append({
+                                'frame_path': frame_info[0],
+                                'frame_number': frame_info[1],
+                                'timestamp': frame_info[2],
+                                'error': str(e),
+                                'potholes_detected': False
+                            })
+                
+                print(f"Parallel processing completed: {len(analyses)} frames analyzed")
+                
+            except Exception as e:
+                print(f"Parallel processing failed: {str(e)}")
+                print("Falling back to sequential processing...")
+                analyses = []
+                use_parallel = False
+        
+        if not use_parallel or len(analyses) == 0:
+            print(f"Analyzing {len(extracted_frames)} frames sequentially...")
+            for i, (frame_path, frame_number, timestamp) in enumerate(extracted_frames, 1):
                 try:
-                    analysis = future.result()
+                    print(f"Processing frame {i}/{len(extracted_frames)}...")
+                    analysis = pothole_analyzer.analyze_frame(
+                        frame_path, frame_number, timestamp
+                    )
                     analyses.append(analysis)
-                    print(f"Completed frame {frame_info[1]}/{len(extracted_frames)}")
+                    print(f"✓ Completed frame {i}/{len(extracted_frames)}")
                 except Exception as e:
-                    print(f"Error analyzing frame {frame_info[1]}: {str(e)}")
+                    print(f"✗ Error analyzing frame {i}: {str(e)}")
                     analyses.append({
-                        'frame_path': frame_info[0],
-                        'frame_number': frame_info[1],
-                        'timestamp': frame_info[2],
+                        'frame_path': frame_path,
+                        'frame_number': frame_number,
+                        'timestamp': timestamp,
                         'error': str(e),
                         'potholes_detected': False
                     })
         
-        # Sort analyses by frame number
         analyses.sort(key=lambda x: x.get('frame_number', 0))
+        print(f"Analysis complete: {len(analyses)} frames processed")
         
         report = pothole_analyzer.generate_maintenance_report(analyses, video_path)
         video_info = video_processor.get_video_info(video_path)

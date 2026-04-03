@@ -1,0 +1,163 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Pothole Video Analyzer - watsonx.ai</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+</head>
+<body>
+    <div class="container">
+        <!-- Header -->
+        <header class="header">
+            <div class="logo">
+                <i class="fas fa-road"></i>
+                <h1>Pothole Video Analyzer</h1>
+            </div>
+            <p class="subtitle">AI-Powered Road Maintenance Analysis with watsonx.ai</p>
+        </header>
+
+        <!-- Upload Section -->
+        <section class="upload-section" id="uploadSection">
+            <div class="upload-card">
+                <div class="upload-icon">
+                    <i class="fas fa-cloud-upload-alt"></i>
+                </div>
+                <h2>Upload Road Video</h2>
+                <p>Upload a video file to analyze potholes and assess road conditions</p>
+                
+                <form id="uploadForm" enctype="multipart/form-data">
+                    <div class="file-input-wrapper">
+                        <input type="file" id="videoFile" name="video" accept="video/*" required>
+                        <label for="videoFile" class="file-label">
+                            <i class="fas fa-file-video"></i>
+                            <span id="fileName">Choose Video File</span>
+                        </label>
+                    </div>
+                    
+                    <button type="submit" class="btn btn-primary" id="analyzeBtn">
+                        <i class="fas fa-search"></i>
+                        Analyze Video
+                    </button>
+                </form>
+
+                <div class="supported-formats">
+                    <small><i class="fas fa-info-circle"></i> Supported formats: MP4, AVI, MOV, MKV, WEBM</small>
+                </div>
+            </div>
+        </section>
+
+        <!-- Progress Section -->
+        <section class="progress-section" id="progressSection" style="display: none;">
+            <div class="progress-card">
+                <div class="progress-icon">
+                    <i class="fas fa-cog fa-spin"></i>
+                </div>
+                <h3>Analyzing Video...</h3>
+                <p id="progressText">Extracting frames and detecting potholes</p>
+                <div class="progress-bar">
+                    <div class="progress-fill" id="progressFill"></div>
+                </div>
+                <small id="progressDetails">This may take a few minutes depending on video length</small>
+            </div>
+        </section>
+
+        <!-- Results Section -->
+        <section class="results-section" id="resultsSection" style="display: none;">
+            <!-- Summary Cards -->
+            <div class="summary-cards">
+                <div class="summary-card critical">
+                    <div class="card-icon">
+                        <i class="fas fa-exclamation-triangle"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 id="totalPotholes">0</h3>
+                        <p>Total Potholes</p>
+                    </div>
+                </div>
+
+                <div class="summary-card priority">
+                    <div class="card-icon">
+                        <i class="fas fa-flag"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 id="overallPriority">-</h3>
+                        <p>Priority Level</p>
+                    </div>
+                </div>
+
+                <div class="summary-card frames">
+                    <div class="card-icon">
+                        <i class="fas fa-film"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 id="framesAnalyzed">0</h3>
+                        <p>Frames Analyzed</p>
+                    </div>
+                </div>
+
+                <div class="summary-card detection">
+                    <div class="card-icon">
+                        <i class="fas fa-check-circle"></i>
+                    </div>
+                    <div class="card-content">
+                        <h3 id="detectionRate">0%</h3>
+                        <p>Detection Rate</p>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Severity Breakdown -->
+            <div class="severity-section">
+                <h2><i class="fas fa-chart-bar"></i> Severity Breakdown</h2>
+                <div class="severity-bars" id="severityBars">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Pothole Details -->
+            <div class="potholes-section">
+                <h2><i class="fas fa-list"></i> Detected Potholes (Ranked by Severity)</h2>
+                <div class="potholes-list" id="potholesList">
+                    <!-- Dynamically populated -->
+                </div>
+            </div>
+
+            <!-- Actions -->
+            <div class="actions">
+                <button class="btn btn-secondary" onclick="downloadReport()">
+                    <i class="fas fa-download"></i>
+                    Download Report
+                </button>
+                <button class="btn btn-primary" onclick="resetAnalysis()">
+                    <i class="fas fa-redo"></i>
+                    Analyze Another Video
+                </button>
+            </div>
+        </section>
+
+        <!-- Error Section -->
+        <section class="error-section" id="errorSection" style="display: none;">
+            <div class="error-card">
+                <div class="error-icon">
+                    <i class="fas fa-exclamation-circle"></i>
+                </div>
+                <h3>Analysis Failed</h3>
+                <p id="errorMessage">An error occurred during analysis</p>
+                <button class="btn btn-primary" onclick="resetAnalysis()">
+                    <i class="fas fa-redo"></i>
+                    Try Again
+                </button>
+            </div>
+        </section>
+
+        <!-- Footer -->
+        <footer class="footer">
+            <p>Powered by <strong>IBM watsonx.ai</strong> | Built with ❤️ for Road Maintenance Teams</p>
+        </footer>
+    </div>
+
+    <script src="{{ url_for('static', filename='js/app.js') }}"></script>
+</body>
+</html>

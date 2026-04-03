@@ -5,7 +5,7 @@ import os
 import json
 import tempfile
 from pathlib import Path
-from flask import Flask, request, jsonify, send_file
+from flask import Flask, request, jsonify, send_file, render_template
 from werkzeug.utils import secure_filename
 from dotenv import load_dotenv
 import traceback
@@ -16,7 +16,9 @@ from pothole_analyzer import PotholeAnalyzer
 # Load environment variables
 load_dotenv('config/.env')
 
-app = Flask(__name__)
+app = Flask(__name__,
+            template_folder='templates',
+            static_folder='static')
 app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB max file size
 app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
 app.config['OUTPUT_FOLDER'] = '/tmp/output'
@@ -57,15 +59,39 @@ def initialize_analyzer():
 
 @app.route('/', methods=['GET'])
 def home():
-    """Health check and API information."""
+    """Serve the web UI or API information based on Accept header."""
+    # Check if request is from a browser (wants HTML)
+    if 'text/html' in request.headers.get('Accept', ''):
+        return render_template('index.html')
+    
+    # Return JSON for API clients
     return jsonify({
         'service': 'Pothole Video Analyzer API',
         'version': '1.0.0',
         'status': 'running',
         'endpoints': {
+            'GET /': 'Web UI or API information',
             'POST /analyze': 'Upload and analyze a video file',
+            'POST /analyze-url': 'Analyze video from URL',
             'GET /health': 'Health check endpoint',
-            'GET /': 'This information page'
+            'GET /api': 'API information (JSON)'
+        }
+    })
+
+
+@app.route('/api', methods=['GET'])
+def api_info():
+    """API information endpoint."""
+    return jsonify({
+        'service': 'Pothole Video Analyzer API',
+        'version': '1.0.0',
+        'status': 'running',
+        'endpoints': {
+            'GET /': 'Web UI',
+            'POST /analyze': 'Upload and analyze a video file',
+            'POST /analyze-url': 'Analyze video from URL',
+            'GET /health': 'Health check endpoint',
+            'GET /api': 'This information page'
         }
     })
 

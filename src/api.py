@@ -1,0 +1,267 @@
+"""
+Flask API for pothole video analysis - designed for IBM Code Engine deployment.
+"""
+import os
+import json
+import tempfile
+from pathlib import Path
+from flask import Flask, request, jsonify, send_file
+from werkzeug.utils import secure_filename
+from dotenv import load_dotenv
+import traceback
+
+from video_processor import VideoProcessor
+from pothole_analyzer import PotholeAnalyzer
+
+# Load environment variables
+load_dotenv('config/.env')
+
+app = Flask(__name__)
+app.config['MAX_CONTENT_LENGTH'] = 500 * 1024 * 1024  # 500MB max file size
+app.config['UPLOAD_FOLDER'] = '/tmp/uploads'
+app.config['OUTPUT_FOLDER'] = '/tmp/output'
+
+# Ensure directories exist
+os.makedirs(app.config['UPLOAD_FOLDER'], exist_ok=True)
+os.makedirs(app.config['OUTPUT_FOLDER'], exist_ok=True)
+
+# Allowed video extensions
+ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv', 'webm'}
+
+def allowed_file(filename):
+    """Check if file extension is allowed."""
+    return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def initialize_analyzer():
+    """Initialize the pothole analyzer with configuration."""
+    api_key = os.getenv('WATSONX_API_KEY')
+    project_id = os.getenv('WATSONX_PROJECT_ID')
+    url = os.getenv('WATSONX_URL', 'https://us-south.ml.cloud.ibm.com')
+    model_id = os.getenv('VISION_MODEL_ID', 'meta-llama/llama-3-2-90b-vision-instruct')
+    frame_rate = int(os.getenv('FRAME_EXTRACTION_RATE', '1'))
+    
+    if not api_key or not project_id:
+        raise ValueError("Missing WATSONX_API_KEY or WATSONX_PROJECT_ID")
+    
+    video_processor = VideoProcessor(frame_rate=frame_rate)
+    pothole_analyzer = PotholeAnalyzer(
+        api_key=api_key,
+        project_id=project_id,
+        url=url,
+        model_id=model_id
+    )
+    
+    return video_processor, pothole_analyzer
+
+
+@app.route('/', methods=['GET'])
+def home():
+    """Health check and API information."""
+    return jsonify({
+        'service': 'Pothole Video Analyzer API',
+        'version': '1.0.0',
+        'status': 'running',
+        'endpoints': {
+            'POST /analyze': 'Upload and analyze a video file',
+            'GET /health': 'Health check endpoint',
+            'GET /': 'This information page'
+        }
+    })
+
+
+@app.route('/health', methods=['GET'])
+def health():
+    """Health check endpoint for Code Engine."""
+    try:
+        # Check if credentials are configured
+        api_key = os.getenv('WATSONX_API_KEY')
+        project_id = os.getenv('WATSONX_PROJECT_ID')
+        
+        if not api_key or not project_id:
+            return jsonify({
+                'status': 'unhealthy',
+                'error': 'Missing watsonx.ai credentials'
+            }), 503
+        
+        return jsonify({
+            'status': 'healthy',
+            'service': 'pothole-analyzer',
+            'configured': True
+        })
+    except Exception as e:
+        return jsonify({
+            'status': 'unhealthy',
+            'error': str(e)
+        }), 503
+
+
+@app.route('/analyze', methods=['POST'])
+def analyze_video():
+    """
+    Analyze uploaded video for potholes.
+    
+    Expected: multipart/form-data with 'video' file
+    Returns: JSON analysis report
+    """
+    try:
+        # Check if video file is present
+        if 'video' not in request.files:
+            return jsonify({
+                'error': 'No video file provided',
+                'message': 'Please upload a video file with key "video"'
+            }), 400
+        
+        file = request.files['video']
+        
+        if file.filename == '':
+            return jsonify({
+                'error': 'No file selected',
+                'message': 'Please select a video file'
+            }), 400
+        
+        if not allowed_file(file.filename):
+            return jsonify({
+                'error': 'Invalid file type',
+                'message': f'Allowed types: {", ".join(ALLOWED_EXTENSIONS)}',
+                'received': file.filename
+            }), 400
+        
+        # Save uploaded file
+        filename = secure_filename(file.filename)
+        video_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        file.save(video_path)
+        
+        # Initialize analyzer
+        video_processor, pothole_analyzer = initialize_analyzer()
+        
+        # Create output directory
+        output_dir = os.path.join(app.config['OUTPUT_FOLDER'], Path(filename).stem)
+        frames_dir = os.path.join(output_dir, 'frames')
+        os.makedirs(frames_dir, exist_ok=True)
+        
+        # Extract frames
+        extracted_frames = video_processor.extract_frames(video_path, frames_dir)
+        
+        # Analyze frames
+        analyses = []
+        for frame_path, frame_number, timestamp in extracted_frames:
+            analysis = pothole_analyzer.analyze_frame(
+                frame_path, frame_number, timestamp
+            )
+            analyses.append(analysis)
+        
+        # Generate report
+        report = pothole_analyzer.generate_maintenance_report(analyses, video_path)
+        
+        # Add video info
+        video_info = video_processor.get_video_info(video_path)
+        report['video_info'] = video_info
+        
+        # Clean up uploaded file
+        os.remove(video_path)
+        
+        # Return analysis
+        return jsonify({
+            'success': True,
+            'filename': filename,
+            'analysis': report
+        })
+        
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        print(f"Error analyzing video: {error_trace}")
+        return jsonify({
+            'error': 'Analysis failed',
+            'message': str(e),
+            'trace': error_trace if app.debug else None
+        }), 500
+
+
+@app.route('/analyze-url', methods=['POST'])
+def analyze_video_url():
+    """
+    Analyze video from URL.
+    
+    Expected JSON: {"video_url": "https://..."}
+    Returns: JSON analysis report
+    """
+    try:
+        data = request.get_json()
+        
+        if not data or 'video_url' not in data:
+            return jsonify({
+                'error': 'No video URL provided',
+                'message': 'Please provide video_url in JSON body'
+            }), 400
+        
+        video_url = data['video_url']
+        
+        # Download video (implement download logic)
+        import requests
+        response = requests.get(video_url, stream=True)
+        
+        if response.status_code != 200:
+            return jsonify({
+                'error': 'Failed to download video',
+                'status_code': response.status_code
+            }), 400
+        
+        # Save to temp file
+        filename = secure_filename(video_url.split('/')[-1])
+        if not allowed_file(filename):
+            filename = 'video.mp4'
+        
+        video_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
+        
+        with open(video_path, 'wb') as f:
+            for chunk in response.iter_content(chunk_size=8192):
+                f.write(chunk)
+        
+        # Process similar to analyze_video
+        video_processor, pothole_analyzer = initialize_analyzer()
+        
+        output_dir = os.path.join(app.config['OUTPUT_FOLDER'], Path(filename).stem)
+        frames_dir = os.path.join(output_dir, 'frames')
+        os.makedirs(frames_dir, exist_ok=True)
+        
+        extracted_frames = video_processor.extract_frames(video_path, frames_dir)
+        
+        analyses = []
+        for frame_path, frame_number, timestamp in extracted_frames:
+            analysis = pothole_analyzer.analyze_frame(
+                frame_path, frame_number, timestamp
+            )
+            analyses.append(analysis)
+        
+        report = pothole_analyzer.generate_maintenance_report(analyses, video_path)
+        video_info = video_processor.get_video_info(video_path)
+        report['video_info'] = video_info
+        
+        # Clean up
+        os.remove(video_path)
+        
+        return jsonify({
+            'success': True,
+            'video_url': video_url,
+            'analysis': report
+        })
+        
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        print(f"Error analyzing video from URL: {error_trace}")
+        return jsonify({
+            'error': 'Analysis failed',
+            'message': str(e),
+            'trace': error_trace if app.debug else None
+        }), 500
+
+
+if __name__ == '__main__':
+    port = int(os.getenv('PORT', 8080))
+    debug = os.getenv('FLASK_DEBUG', 'False').lower() == 'true'
+    
+    print(f"Starting Pothole Video Analyzer API on port {port}")
+    app.run(host='0.0.0.0', port=port, debug=debug)
+
+# Made with Bob

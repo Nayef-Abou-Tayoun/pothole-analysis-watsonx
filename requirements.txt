@@ -1,0 +1,27 @@
+# IBM watsonx.ai SDK
+ibm-watsonx-ai>=0.2.0
+
+# Video processing
+opencv-python>=4.8.0
+opencv-python-headless>=4.8.0
+
+# Image processing
+Pillow>=10.0.0
+numpy>=1.24.0
+
+# API and HTTP
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Data handling
+pandas>=2.0.0
+
+# JSON handling
+jsonschema>=4.19.0
+
+# Progress bars
+tqdm>=4.66.0
+
+# Web API (for Code Engine deployment)
+Flask>=3.0.0
+gunicorn>=21.2.0

@@ -1,0 +1,27 @@
+version: '3.8'
+
+services:
+  pothole-analyzer:
+    build: .
+    container_name: pothole-analyzer-api
+    ports:
+      - "8080:8080"
+    environment:
+      - WATSONX_API_KEY=${WATSONX_API_KEY}
+      - WATSONX_PROJECT_ID=${WATSONX_PROJECT_ID}
+      - WATSONX_URL=${WATSONX_URL:-https://us-south.ml.cloud.ibm.com}
+      - VISION_MODEL_ID=${VISION_MODEL_ID:-meta-llama/llama-3-2-90b-vision-instruct}
+      - FRAME_EXTRACTION_RATE=${FRAME_EXTRACTION_RATE:-1}
+      - FLASK_DEBUG=${FLASK_DEBUG:-False}
+    volumes:
+      - ./output:/app/output
+      - ./samples:/app/samples
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/health"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+# Made with Bob

@@ -70,15 +70,25 @@ class PotholeAnalyzer:
         # Encode image
         image_base64 = self.encode_image(frame_path)
         
-        # Create detailed prompt for pothole detection - enhanced for small defects
-        prompt = """Analyze this road image carefully for ANY road surface defects including potholes, cracks, depressions, and damage.
+        # Create detailed prompt for pothole detection - ULTRA SENSITIVE for all road defects
+        prompt = """You are a road maintenance inspector. Analyze this road image with EXTREME attention to detail for ANY road surface defects.
 
-IMPORTANT: Detect ALL defects, even very small ones (5cm+). Include:
-- Small potholes and depressions
-- Cracks that could develop into potholes
-- Surface deterioration and wear
-- Patches indicating previous repairs
-- Any holes, cavities, or missing pavement
+CRITICAL INSTRUCTIONS - DETECT EVERYTHING:
+1. Look for DARK PATCHES or DISCOLORATION in the pavement (often indicates damage)
+2. Find ANY HOLES, DEPRESSIONS, or CAVITIES (even tiny ones 3cm+)
+3. Identify CRACKS of any size (hairline to large)
+4. Spot SURFACE DETERIORATION, WEAR, or ROUGH PATCHES
+5. Notice REPAIR PATCHES or FILLED AREAS (darker/lighter than surrounding pavement)
+6. Detect MISSING PAVEMENT or EXPOSED AGGREGATE
+7. Find EDGE DETERIORATION along lane markings
+8. Identify ANY IRREGULARITIES in the road surface
+
+LOOK CAREFULLY at:
+- Right side of the lane (common pothole location)
+- Left side near lane markings
+- Center of the driving path
+- Wheel tracks where vehicles drive
+- Areas with color differences (darker = often damage)
 
 Provide a detailed assessment in JSON format:
 
@@ -89,11 +99,11 @@ Provide a detailed assessment in JSON format:
     {
       "id": 1,
       "severity": "low/medium/high/critical",
-      "estimated_size": "description (e.g., 'very small - 5-10cm', 'small - 10-20cm', 'medium - 20-40cm', 'large - 40cm+')",
-      "location": "precise location in frame (e.g., 'center of lane', 'left side near curb', 'right wheel track')",
+      "estimated_size": "description (e.g., 'very small - 3-10cm', 'small - 10-20cm', 'medium - 20-40cm', 'large - 40cm+')",
+      "location": "PRECISE location (e.g., 'right side of lane, 2 meters ahead', 'center-right wheel track', 'left edge near marking')",
       "depth_assessment": "very shallow/shallow/moderate/deep",
-      "type": "pothole/crack/depression/surface damage/patch",
-      "description": "detailed description for maintenance team"
+      "type": "pothole/crack/depression/surface damage/patch/discoloration",
+      "description": "detailed description including color, shape, and potential risk"
     }
   ],
   "road_condition": "overall assessment",
@@ -101,7 +111,7 @@ Provide a detailed assessment in JSON format:
   "additional_notes": "any observations about road quality"
 }
 
-Be thorough - detect even minor defects that could worsen. Small issues are important for preventive maintenance."""
+IMPORTANT: Be VERY SENSITIVE - report even minor defects. It's better to flag potential issues than miss them. Look for subtle signs of damage."""
 
         try:
             # Generate analysis using vision model

@@ -49,4 +49,4 @@ Thumbs.db
 # Testing
 .pytest_cache/
 .coverage
-htmlcov/
+htmlcov/# Force rebuild Fri Apr  3 22:47:11 EDT 2026

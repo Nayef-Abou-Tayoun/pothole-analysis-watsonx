@@ -70,6 +70,7 @@ def generate_summary_report(report):
     has_street_lights = False
     num_lanes = None
     weather_condition = None
+    side_features = []
     
     for analysis in analyses:
         raw_text = analysis.get('raw_response', '').lower()
@@ -137,15 +138,15 @@ def generate_summary_report(report):
         if 'light' in raw_text or 'street light' in raw_text or 'lamp' in raw_text or 'lighting' in raw_text:
             has_street_lights = True
         
-        # Detect number of lanes
+        # Detect number of lanes - count from AI description
         if 'two lane' in raw_text or '2 lane' in raw_text or 'two-lane' in raw_text:
-            num_lanes = 'two lane'
+            num_lanes = 2
         elif 'three lane' in raw_text or '3 lane' in raw_text or 'three-lane' in raw_text:
-            num_lanes = 'three lane'
+            num_lanes = 3
         elif 'four lane' in raw_text or '4 lane' in raw_text or 'four-lane' in raw_text:
-            num_lanes = 'four lane'
+            num_lanes = 4
         elif 'single lane' in raw_text or '1 lane' in raw_text or 'one lane' in raw_text:
-            num_lanes = 'single lane'
+            num_lanes = 1
         
         # Detect weather conditions
         if 'snow' in raw_text or 'snowy' in raw_text or 'snowing' in raw_text:
@@ -158,6 +159,20 @@ def generate_summary_report(report):
             weather_condition = 'clear'
         elif 'cloudy' in raw_text or 'overcast' in raw_text:
             weather_condition = 'cloudy'
+        
+        # Detect side features
+        if 'concrete barrier' in raw_text or 'traffic barrier' in raw_text or 'barrier' in raw_text:
+            if 'concrete barrier' not in side_features:
+                side_features.append('concrete traffic barriers')
+        if 'pedestrian' in raw_text or 'sidewalk' in raw_text or 'footpath' in raw_text:
+            if 'pedestrian way' not in side_features:
+                side_features.append('pedestrian way')
+        if 'cycle' in raw_text or 'bike lane' in raw_text or 'bicycle' in raw_text:
+            if 'cycle lane' not in side_features:
+                side_features.append('cycle lane')
+        if 'open side' in raw_text or 'no barrier' in raw_text or 'open road' in raw_text:
+            if 'open side' not in side_features:
+                side_features.append('open side')
     
     # Build summary
     if not pothole_details:
@@ -179,16 +194,24 @@ def generate_summary_report(report):
         else:
             traffic_desc = 'moderate'
         
-        # Build detailed summary with lanes and weather
+        # Build detailed summary with lanes, sides, and weather
         line1 = f"Analysis Summary: Pothole detected {primary_pothole['size']} size (estimated {primary_pothole['size_cm']}), located on the {primary_pothole['position']} side of {primary_pothole['lane']}. Severity is {primary_pothole['severity']}."
         
-        # Line 2: Road markings, lanes, traffic, and weather
+        # Line 2: Road markings, lanes, sides, traffic, and weather
         line2_parts = [f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}."]
+        
         if num_lanes:
-            line2_parts.append(f"It is a {num_lanes}.")
+            line2_parts.append(f"It is a {num_lanes} lane street.")
+        
+        if side_features:
+            sides_text = ", ".join(side_features)
+            line2_parts.append(f"Sides have {sides_text}.")
+        
         line2_parts.append(f"Overall traffic conditions: {traffic_desc}.")
+        
         if weather_condition:
             line2_parts.append(f"Weather condition: {weather_condition}.")
+        
         line2 = " ".join(line2_parts)
         
         # Line 3: Street lights

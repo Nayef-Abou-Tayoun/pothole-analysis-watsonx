@@ -197,6 +197,23 @@ def health():
 @app.route('/analyze', methods=['POST'])
 def analyze_video():
     """
+
+@app.route('/frames/<path:filename>')
+def serve_frame(filename):
+    """Serve frame images."""
+    try:
+        # Security: ensure the path is within OUTPUT_FOLDER
+        safe_path = os.path.join(app.config['OUTPUT_FOLDER'], filename)
+        if not os.path.abspath(safe_path).startswith(os.path.abspath(app.config['OUTPUT_FOLDER'])):
+            return jsonify({'error': 'Invalid path'}), 403
+        
+        if os.path.exists(safe_path):
+            return send_file(safe_path, mimetype='image/jpeg')
+        else:
+            return jsonify({'error': 'Frame not found'}), 404
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
     Analyze uploaded video for potholes.
     
     Expected: multipart/form-data with 'video' file
@@ -340,12 +357,10 @@ def analyze_video():
         report['summary'] = summary
         print("Summary report generated")
         
-        # Clean up uploaded file and frames
-        print("Cleaning up files...")
+        # Clean up uploaded video file only (keep frames for display)
+        print("Cleaning up video file...")
         os.remove(video_path)
-        if os.path.exists(output_dir):
-            shutil.rmtree(output_dir)
-        print("Cleanup complete")
+        print("Cleanup complete (frames preserved for display)")
         
         # Return analysis
         print("Sending response...")
@@ -354,9 +369,15 @@ def analyze_video():
         
         try:
             # Simplify response - remove raw_response to reduce size
+            # Add frame URLs for display
+            video_stem = Path(filename).stem
             for analysis in analyses:
                 if 'raw_response' in analysis:
                     del analysis['raw_response']
+                # Add frame URL if frame exists
+                if 'frame_path' in analysis:
+                    frame_filename = os.path.basename(analysis['frame_path'])
+                    analysis['frame_url'] = f'/frames/{video_stem}/frames/{frame_filename}'
             
             response_data = {
                 'success': True,

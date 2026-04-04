@@ -203,6 +203,15 @@ function displayPotholeList(potholes) {
     }
 
     potholes.forEach((pothole, index) => {
+        // Build frame image HTML if available
+        const frameImageHTML = pothole.frame_url ? `
+            <div class="pothole-frame">
+                <img src="${pothole.frame_url}" alt="Frame ${pothole.frame_number}"
+                     onerror="this.parentElement.style.display='none'">
+                <div class="frame-label">Frame ${pothole.frame_number} @ ${pothole.timestamp}s</div>
+            </div>
+        ` : '';
+        
         const cardHTML = `
             <div class="pothole-card">
                 <div class="pothole-header">
@@ -214,6 +223,7 @@ function displayPotholeList(potholes) {
                         ${(pothole.severity || 'low').toUpperCase()}
                     </span>
                 </div>
+                ${frameImageHTML}
                 <div class="pothole-details">
                     <div class="detail-item">
                         <span class="detail-label"><i class="fas fa-ruler"></i> Size</span>

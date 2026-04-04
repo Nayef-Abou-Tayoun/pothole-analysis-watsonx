@@ -60,34 +60,49 @@ async function analyzeVideo(file) {
         const formData = new FormData();
         formData.append('video', file);
 
-        // Upload and analyze
+        // Upload and analyze with timeout
         updateProgress(30, 'Extracting frames...');
         
-        const response = await fetch('/analyze', {
-            method: 'POST',
-            body: formData
-        });
-
-        if (!response.ok) {
-            const error = await response.json();
-            throw new Error(error.message || 'Analysis failed');
-        }
-
-        updateProgress(90, 'Processing results...');
+        // Create abort controller for timeout
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minute timeout
         
-        const data = await response.json();
-        
-        if (data.success) {
-            analysisData = data.analysis;
-            updateProgress(100, 'Complete!');
-            setTimeout(() => displayResults(data.analysis), 500);
-        } else {
-            throw new Error(data.error || 'Analysis failed');
+        try {
+            const response = await fetch('/analyze', {
+                method: 'POST',
+                body: formData,
+                signal: controller.signal
+            });
+
+            clearTimeout(timeoutId);
+
+            if (!response.ok) {
+                const error = await response.json();
+                throw new Error(error.message || 'Analysis failed');
+            }
+
+            updateProgress(90, 'Processing results...');
+            
+            const data = await response.json();
+            
+            if (data.success) {
+                analysisData = data.analysis;
+                updateProgress(100, 'Complete!');
+                setTimeout(() => displayResults(data.analysis), 500);
+            } else {
+                throw new Error(data.error || 'Analysis failed');
+            }
+        } catch (fetchError) {
+            clearTimeout(timeoutId);
+            if (fetchError.name === 'AbortError') {
+                throw new Error('Request timeout - analysis took too long');
+            }
+            throw fetchError;
         }
 
     } catch (error) {
         console.error('Analysis error:', error);
-        showError(error.message);
+        showError(error.message || 'An error occurred during analysis');
     }
 }
 

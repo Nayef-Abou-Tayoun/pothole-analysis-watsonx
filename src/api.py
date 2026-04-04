@@ -195,9 +195,6 @@ def health():
 
 
 @app.route('/analyze', methods=['POST'])
-def analyze_video():
-    """
-
 @app.route('/frames/<path:filename>')
 def serve_frame(filename):
     """Serve frame images."""
@@ -214,6 +211,10 @@ def serve_frame(filename):
     except Exception as e:
         return jsonify({'error': str(e)}), 500
 
+
+@app.route('/analyze', methods=['POST'])
+def analyze_video():
+    """
     Analyze uploaded video for potholes.
     
     Expected: multipart/form-data with 'video' file

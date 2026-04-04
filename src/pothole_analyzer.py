@@ -70,28 +70,38 @@ class PotholeAnalyzer:
         # Encode image
         image_base64 = self.encode_image(frame_path)
         
-        # Create detailed prompt for pothole detection
-        prompt = """Analyze this road image for potholes. Provide a detailed assessment in JSON format with the following structure:
+        # Create detailed prompt for pothole detection - enhanced for small defects
+        prompt = """Analyze this road image carefully for ANY road surface defects including potholes, cracks, depressions, and damage.
+
+IMPORTANT: Detect ALL defects, even very small ones (5cm+). Include:
+- Small potholes and depressions
+- Cracks that could develop into potholes
+- Surface deterioration and wear
+- Patches indicating previous repairs
+- Any holes, cavities, or missing pavement
+
+Provide a detailed assessment in JSON format:
 
 {
   "potholes_detected": true/false,
-  "count": number of potholes,
+  "count": number of defects found,
   "potholes": [
     {
       "id": 1,
       "severity": "low/medium/high/critical",
-      "estimated_size": "description of size (e.g., 'small - approximately 15cm diameter', 'large - approximately 50cm x 30cm')",
-      "location": "description of location in frame (e.g., 'center of lane', 'left side near curb')",
-      "depth_assessment": "shallow/moderate/deep",
-      "description": "detailed description for maintenance team including context"
+      "estimated_size": "description (e.g., 'very small - 5-10cm', 'small - 10-20cm', 'medium - 20-40cm', 'large - 40cm+')",
+      "location": "precise location in frame (e.g., 'center of lane', 'left side near curb', 'right wheel track')",
+      "depth_assessment": "very shallow/shallow/moderate/deep",
+      "type": "pothole/crack/depression/surface damage/patch",
+      "description": "detailed description for maintenance team"
     }
   ],
-  "road_condition": "overall road condition assessment",
+  "road_condition": "overall assessment",
   "maintenance_priority": "low/medium/high/urgent",
-  "additional_notes": "any other relevant observations"
+  "additional_notes": "any observations about road quality"
 }
 
-Be specific about sizes, locations, and provide actionable information for road maintenance teams."""
+Be thorough - detect even minor defects that could worsen. Small issues are important for preventive maintenance."""
 
         try:
             # Generate analysis using vision model

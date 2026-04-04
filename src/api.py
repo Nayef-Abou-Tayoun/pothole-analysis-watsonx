@@ -68,6 +68,8 @@ def generate_summary_report(report):
     road_markings_clear = True
     traffic_conditions = []
     has_street_lights = False
+    num_lanes = None
+    weather_condition = None
     
     for analysis in analyses:
         raw_text = analysis.get('raw_response', '').lower()
@@ -134,6 +136,28 @@ def generate_summary_report(report):
         # Check for street lights
         if 'light' in raw_text or 'street light' in raw_text or 'lamp' in raw_text or 'lighting' in raw_text:
             has_street_lights = True
+        
+        # Detect number of lanes
+        if 'two lane' in raw_text or '2 lane' in raw_text or 'two-lane' in raw_text:
+            num_lanes = 'two lane'
+        elif 'three lane' in raw_text or '3 lane' in raw_text or 'three-lane' in raw_text:
+            num_lanes = 'three lane'
+        elif 'four lane' in raw_text or '4 lane' in raw_text or 'four-lane' in raw_text:
+            num_lanes = 'four lane'
+        elif 'single lane' in raw_text or '1 lane' in raw_text or 'one lane' in raw_text:
+            num_lanes = 'single lane'
+        
+        # Detect weather conditions
+        if 'snow' in raw_text or 'snowy' in raw_text or 'snowing' in raw_text:
+            weather_condition = 'snow'
+        elif 'rain' in raw_text or 'rainy' in raw_text or 'raining' in raw_text or 'wet' in raw_text:
+            weather_condition = 'rain'
+        elif 'fog' in raw_text or 'foggy' in raw_text:
+            weather_condition = 'fog'
+        elif 'sunny' in raw_text or 'clear' in raw_text or 'bright' in raw_text:
+            weather_condition = 'clear'
+        elif 'cloudy' in raw_text or 'overcast' in raw_text:
+            weather_condition = 'cloudy'
     
     # Build summary
     if not pothole_details:
@@ -155,10 +179,19 @@ def generate_summary_report(report):
         else:
             traffic_desc = 'moderate'
         
-        # Build detailed 3-line summary
+        # Build detailed summary with lanes and weather
         line1 = f"Analysis Summary: Pothole detected {primary_pothole['size']} size (estimated {primary_pothole['size_cm']}), located on the {primary_pothole['position']} side of {primary_pothole['lane']}. Severity is {primary_pothole['severity']}."
-        line2 = f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}. Overall traffic conditions: {traffic_desc}."
         
+        # Line 2: Road markings, lanes, traffic, and weather
+        line2_parts = [f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}."]
+        if num_lanes:
+            line2_parts.append(f"It is a {num_lanes}.")
+        line2_parts.append(f"Overall traffic conditions: {traffic_desc}.")
+        if weather_condition:
+            line2_parts.append(f"Weather condition: {weather_condition}.")
+        line2 = " ".join(line2_parts)
+        
+        # Line 3: Street lights
         if has_street_lights:
             line3 = "There are street lights so pothole expected to be visible during night."
         else:

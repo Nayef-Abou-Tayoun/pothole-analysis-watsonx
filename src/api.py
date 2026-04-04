@@ -286,14 +286,23 @@ def analyze_video():
             print("Response created successfully, returning...")
             sys.stdout.flush()
             
-            # Create response with explicit headers to prevent buffering
-            response = jsonify(response_data)
-            response.headers['Content-Type'] = 'application/json'
-            response.headers['X-Content-Type-Options'] = 'nosniff'
+            # Create response with explicit headers and content-length
+            import json
+            response_json = json.dumps(response_data)
+            response = app.response_class(
+                response=response_json,
+                status=200,
+                mimetype='application/json'
+            )
+            response.headers['Content-Length'] = str(len(response_json))
+            response.headers['Connection'] = 'close'
             
             # Force immediate flush
             sys.stdout.flush()
             sys.stderr.flush()
+            
+            print(f"Returning response with {len(response_json)} bytes")
+            sys.stdout.flush()
             
             return response
         except Exception as e:

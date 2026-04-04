@@ -194,7 +194,6 @@ def health():
         }), 503
 
 
-@app.route('/analyze', methods=['POST'])
 @app.route('/frames/<path:filename>')
 def serve_frame(filename):
     """Serve frame images."""

@@ -57,93 +57,101 @@ def cleanup_old_files(directory, keep_current=None):
 
 
 def generate_summary_report(report):
-    """Generate a comprehensive 4-line summary paragraph consolidating all frame analyses."""
+    """Generate a detailed summary focusing on specific pothole characteristics."""
     total_frames = report.get('total_frames_analyzed', 0)
     
     # Get all frame analyses
     analyses = report.get('detailed_analyses', [])
     
-    # Count frames with potholes by analyzing AI text responses
-    frames_with_potholes = 0
-    pothole_mentions = []
-    observations = []
+    # Collect detailed pothole information
+    pothole_details = []
+    road_markings_clear = True
+    traffic_conditions = []
     
     for analysis in analyses:
         raw_text = analysis.get('raw_response', '').lower()
+        frame_num = analysis.get('frame_number', 0)
         
-        # Count ANY mention of "pothole" regardless of location
+        # Extract pothole details if found
         if 'pothole' in raw_text:
-            frames_with_potholes += 1
+            detail = {'frame': frame_num}
             
-            # Extract specific observations
-            if 'large pothole' in raw_text:
-                observations.append('large potholes')
-                pothole_mentions.append('large pothole')
-            elif 'small pothole' in raw_text:
-                observations.append('small potholes')
-                pothole_mentions.append('small pothole')
+            # Determine size
+            if 'large' in raw_text:
+                detail['size'] = 'large'
+            elif 'medium' in raw_text:
+                detail['size'] = 'medium'
+            elif 'small' in raw_text:
+                detail['size'] = 'small'
             else:
-                pothole_mentions.append('pothole')
+                detail['size'] = 'medium'  # default
             
-            # Check location mentions
-            if 'barrier' in raw_text or 'concrete barrier' in raw_text:
-                observations.append('barrier damage')
-            if 'road' in raw_text and 'middle' in raw_text:
-                observations.append('road surface potholes')
-                
-        # Other observations
-        if 'puddle' in raw_text or 'water' in raw_text:
-            observations.append('water accumulation')
-        if 'crack' in raw_text:
-            observations.append('surface cracks')
+            # Determine location (left/center/right)
+            if 'left' in raw_text:
+                detail['position'] = 'left'
+            elif 'right' in raw_text:
+                detail['position'] = 'right'
+            elif 'center' in raw_text or 'middle' in raw_text:
+                detail['position'] = 'center'
+            elif 'barrier' in raw_text:
+                detail['position'] = 'barrier area'
+            else:
+                detail['position'] = 'center'  # default
+            
+            # Determine lane if mentioned
+            if 'lane 1' in raw_text or 'first lane' in raw_text:
+                detail['lane'] = 'lane 1'
+            elif 'lane 2' in raw_text or 'second lane' in raw_text:
+                detail['lane'] = 'lane 2'
+            else:
+                detail['lane'] = 'main lane'
+            
+            pothole_details.append(detail)
+        
+        # Check road markings
+        if 'marking' in raw_text:
+            if 'faded' in raw_text or 'unclear' in raw_text or 'worn' in raw_text:
+                road_markings_clear = False
+        
+        # Check traffic conditions
+        if 'traffic' in raw_text:
+            if 'heavy' in raw_text:
+                traffic_conditions.append('heavy')
+            elif 'light' in raw_text:
+                traffic_conditions.append('light')
+            elif 'moderate' in raw_text:
+                traffic_conditions.append('moderate')
     
-    # Remove duplicates
-    observations = list(set(observations))
-    total_potholes = len(pothole_mentions)
-    
-    # Build 4-line summary
-    if total_potholes == 0:
+    # Build summary
+    if not pothole_details:
         summary = (
-            f"Video Analysis Summary: Analyzed {total_frames} frames from the road segment. "
-            f"The road surface appears to be in good overall condition with no significant potholes or defects detected. "
-            f"Road markings are clear and visible, and the pavement surface is well-maintained throughout the segment. "
-            f"Routine monitoring is recommended to maintain current infrastructure standards and ensure continued road safety."
+            f"Analysis Summary: Analyzed {total_frames} frames. "
+            f"No potholes detected in the road segment. "
+            f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}. "
+            f"Overall traffic conditions appear normal with well-maintained road surface."
         )
     else:
-        # Determine condition based on pothole count and observations
-        if total_potholes >= 5 or 'large potholes' in observations:
-            condition = "poor"
-        elif total_potholes >= 3:
-            condition = "fair"
-        elif total_potholes >= 1:
-            condition = "acceptable"
+        # Focus on the most significant pothole (largest or first found)
+        primary_pothole = pothole_details[0]
+        for p in pothole_details:
+            if p['size'] == 'large':
+                primary_pothole = p
+                break
+        
+        # Determine overall traffic
+        if traffic_conditions:
+            traffic_desc = max(set(traffic_conditions), key=traffic_conditions.count)
         else:
-            condition = "good"
-            
-        # Line 1: Overview
-        line1 = f"Video Analysis Summary: Analyzed {total_frames} frames from the road segment, identifying potholes in {frames_with_potholes} frames with {total_potholes} total pothole{'s' if total_potholes != 1 else ''} detected."
+            traffic_desc = 'normal'
         
-        # Line 2: Observations
-        obs_text = ", ".join(observations[:4]) if observations else "potholes and road defects"
-        line2 = f"The road segment is in {condition} condition with defects identified, including {obs_text} that require maintenance attention."
-        
-        # Line 3: Impact assessment
-        if total_potholes >= 5 or 'large potholes' in observations:
-            line3 = "The identified potholes pose safety risks to vehicles and may cause damage or accidents if left unaddressed, particularly affecting vehicle suspension and tire integrity."
-        elif total_potholes >= 2:
-            line3 = "The identified defects impact road quality and driving comfort, with potential for deterioration if not addressed in upcoming maintenance cycles."
-        else:
-            line3 = "Minor issues were detected that should be monitored and addressed during routine maintenance to prevent further degradation."
-        
-        # Line 4: Recommendations
-        if total_potholes >= 5 or 'large potholes' in observations:
-            line4 = "Immediate repair action is recommended to address the potholes and prevent vehicle damage, ensure public safety, and avoid liability concerns."
-        elif total_potholes >= 2:
-            line4 = "Prompt repair is recommended within the next maintenance cycle to address the potholes and maintain road quality standards."
-        else:
-            line4 = "Schedule repairs during the next planned maintenance window to address identified issues and maintain infrastructure standards."
-        
-        summary = f"{line1} {line2} {line3} {line4}"
+        # Build detailed summary
+        summary = (
+            f"Analysis Summary: Pothole detected in frame {primary_pothole['frame']} - "
+            f"{primary_pothole['size']} size, located on the {primary_pothole['position']} side of {primary_pothole['lane']}. "
+            f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}. "
+            f"Overall traffic conditions: {traffic_desc}. "
+            f"Total of {len(pothole_details)} pothole{'s' if len(pothole_details) != 1 else ''} identified across {total_frames} frames analyzed."
+        )
     
     return summary
 

@@ -195,9 +195,6 @@ function displayPotholeList(potholes) {
     }
 
     potholes.forEach((pothole, index) => {
-
-    // Setup video player
-    setupVideoPlayer(analysis.ranked_potholes || []);
         const cardHTML = `
             <div class="pothole-card">
                 <div class="pothole-header">

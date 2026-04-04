@@ -270,6 +270,11 @@ def analyze_video():
         sys.stdout.flush()
         
         try:
+            # Simplify response - remove raw_response to reduce size
+            for analysis in analyses:
+                if 'raw_response' in analysis:
+                    del analysis['raw_response']
+            
             response_data = {
                 'success': True,
                 'filename': filename,
@@ -279,9 +284,10 @@ def analyze_video():
             sys.stdout.flush()
             
             response = jsonify(response_data)
-            print("Response created successfully")
+            print("Response created successfully, returning...")
             sys.stdout.flush()
             
+            # Force flush before return
             return response
         except Exception as e:
             print(f"Error creating response: {str(e)}")
@@ -289,6 +295,9 @@ def analyze_video():
             traceback.print_exc()
             sys.stdout.flush()
             raise
+        finally:
+            print("Response function completed")
+            sys.stdout.flush()
         
     except Exception as e:
         error_trace = traceback.format_exc()

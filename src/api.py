@@ -70,7 +70,7 @@ def generate_summary_report(report):
     has_street_lights = False
     num_lanes = None
     weather_condition = None
-    side_features = []
+    side_features = set()  # Use set to avoid duplicates
     
     for analysis in analyses:
         raw_text = analysis.get('raw_response', '').lower()
@@ -160,19 +160,15 @@ def generate_summary_report(report):
         elif 'cloudy' in raw_text or 'overcast' in raw_text:
             weather_condition = 'cloudy'
         
-        # Detect side features
-        if 'concrete barrier' in raw_text or 'traffic barrier' in raw_text or 'barrier' in raw_text:
-            if 'concrete barrier' not in side_features:
-                side_features.append('concrete traffic barriers')
-        if 'pedestrian' in raw_text or 'sidewalk' in raw_text or 'footpath' in raw_text:
-            if 'pedestrian way' not in side_features:
-                side_features.append('pedestrian way')
-        if 'cycle' in raw_text or 'bike lane' in raw_text or 'bicycle' in raw_text:
-            if 'cycle lane' not in side_features:
-                side_features.append('cycle lane')
-        if 'open side' in raw_text or 'no barrier' in raw_text or 'open road' in raw_text:
-            if 'open side' not in side_features:
-                side_features.append('open side')
+        # Detect side features (only add if explicitly mentioned)
+        if 'concrete barrier' in raw_text or 'traffic barrier' in raw_text:
+            side_features.add('concrete traffic barriers')
+        if 'pedestrian' in raw_text and ('way' in raw_text or 'sidewalk' in raw_text or 'footpath' in raw_text):
+            side_features.add('pedestrian way')
+        if 'cycle' in raw_text or 'bike lane' in raw_text or 'bicycle lane' in raw_text:
+            side_features.add('cycle lane')
+        if 'open side' in raw_text or ('no barrier' in raw_text and 'open' in raw_text):
+            side_features.add('open side')
     
     # Build summary
     if not pothole_details:
@@ -204,7 +200,7 @@ def generate_summary_report(report):
             line2_parts.append(f"It is a {num_lanes} lane street.")
         
         if side_features:
-            sides_text = ", ".join(side_features)
+            sides_text = ", ".join(sorted(side_features))  # Sort for consistent order
             line2_parts.append(f"Sides have {sides_text}.")
         
         line2_parts.append(f"Overall traffic conditions: {traffic_desc}.")

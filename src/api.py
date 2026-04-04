@@ -283,11 +283,18 @@ def analyze_video():
             print(f"Response data size: {len(str(response_data))} characters")
             sys.stdout.flush()
             
-            response = jsonify(response_data)
             print("Response created successfully, returning...")
             sys.stdout.flush()
             
-            # Force flush before return
+            # Create response with explicit headers to prevent buffering
+            response = jsonify(response_data)
+            response.headers['Content-Type'] = 'application/json'
+            response.headers['X-Content-Type-Options'] = 'nosniff'
+            
+            # Force immediate flush
+            sys.stdout.flush()
+            sys.stderr.flush()
+            
             return response
         except Exception as e:
             print(f"Error creating response: {str(e)}")

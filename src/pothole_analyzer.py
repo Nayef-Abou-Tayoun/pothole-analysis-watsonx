@@ -3,11 +3,9 @@ Pothole detection and analysis module using IBM watsonx.ai.
 """
 import os
 import base64
-from typing import Dict, List, Optional
-from ibm_watsonx_ai.foundation_models import ModelInference
-from ibm_watsonx_ai.metanames import GenTextParamsMetaNames as GenParams
-from ibm_watsonx_ai import Credentials
+from typing import Dict, List
 import json
+import requests
 
 
 class PotholeAnalyzer:
@@ -23,24 +21,28 @@ class PotholeAnalyzer:
             url: watsonx.ai service URL
             model_id: Vision model ID to use
         """
-        self.credentials = Credentials(
-            api_key=api_key,
-            url=url
-        )
+        self.api_key = api_key
         self.project_id = project_id
         self.model_id = model_id
+        self.url = url
         
-        # Initialize model
-        self.model = ModelInference(
-            model_id=self.model_id,
-            credentials=self.credentials,
-            project_id=self.project_id,
-            params={
-                GenParams.MAX_NEW_TOKENS: 500,
-                GenParams.TEMPERATURE: 0.3,
-                GenParams.TOP_P: 0.9,
-            }
-        )
+        # Get access token for API calls
+        self.access_token = self._get_access_token()
+    
+    def _get_access_token(self) -> str:
+        """Get IBM Cloud IAM access token."""
+        token_url = "https://iam.cloud.ibm.com/identity/token"
+        headers = {"Content-Type": "application/x-www-form-urlencoded"}
+        data = {
+            "grant_type": "urn:ibm:params:oauth:grant-type:apikey",
+            "apikey": self.api_key
+        }
+        
+        response = requests.post(token_url, headers=headers, data=data)
+        if response.status_code != 200:
+            raise Exception(f"Failed to get access token: {response.text}")
+        
+        return response.json()["access_token"]
     
     def encode_image(self, image_path: str) -> str:
         """
@@ -57,7 +59,7 @@ class PotholeAnalyzer:
     
     def analyze_frame(self, frame_path: str, frame_number: int, timestamp: float) -> Dict:
         """
-        Analyze a single frame for potholes.
+        Analyze a single frame for potholes using chat API with vision.
         
         Args:
             frame_path: Path to frame image
@@ -67,41 +69,52 @@ class PotholeAnalyzer:
         Returns:
             Dictionary containing analysis results
         """
-        # Encode image
+        # Encode image to base64
         image_base64 = self.encode_image(frame_path)
         
+        # Prepare chat API request
+        url = f"{self.url}/ml/v1/text/chat?version=2023-05-29"
+        
+        headers = {
+            "Accept": "application/json",
+            "Content-Type": "application/json",
+            "Authorization": f"Bearer {self.access_token}"
+        }
+        
         # Simple and effective prompt - based on successful test
-        prompt = """Any issue with the road?
-
-Provide a detailed assessment in JSON format:
-
-{
-  "potholes_detected": true/false,
-  "count": number of defects found,
-  "potholes": [
-    {
-      "id": 1,
-      "severity": "low/medium/high/critical",
-      "estimated_size": "description (e.g., 'small - 10-20cm', 'medium - 20-40cm', 'large - 40cm+')",
-      "location": "precise location (e.g., 'right side of lane', 'center', 'left side')",
-      "depth_assessment": "shallow/moderate/deep",
-      "type": "pothole/crack/depression/surface damage",
-      "description": "detailed description for maintenance team"
-    }
-  ],
-  "road_condition": "overall assessment",
-  "maintenance_priority": "low/medium/high/urgent"
-}"""
-
+        body = {
+            "messages": [
+                {
+                    "role": "user",
+                    "content": [
+                        {"type": "text", "text": "Any issue with the road?"},
+                        {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
+                    ]
+                }
+            ],
+            "project_id": self.project_id,
+            "model_id": self.model_id,
+            "frequency_penalty": 0,
+            "max_tokens": 2000,
+            "presence_penalty": 0,
+            "temperature": 0,
+            "top_p": 1
+        }
+        
         try:
-            # Generate analysis using vision model
-            response = self.model.generate_text(
-                prompt=prompt,
-                guardrails=False
-            )
+            # Call chat API with image
+            response = requests.post(url, headers=headers, json=body, timeout=60)
+            
+            if response.status_code != 200:
+                raise Exception(f"API error: {response.status_code} - {response.text}")
+            
+            data = response.json()
+            
+            # Extract response text from chat completion
+            response_text = data.get('choices', [{}])[0].get('message', {}).get('content', '')
             
             # Parse response
-            analysis = self._parse_analysis(response, frame_path, frame_number, timestamp)
+            analysis = self._parse_analysis(response_text, frame_path, frame_number, timestamp)
             return analysis
             
         except Exception as e:

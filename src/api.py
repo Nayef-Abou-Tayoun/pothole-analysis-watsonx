@@ -163,10 +163,15 @@ def generate_summary_report(report):
         # Detect side features (only add if explicitly mentioned)
         if 'concrete barrier' in raw_text or 'traffic barrier' in raw_text:
             side_features.add('concrete traffic barriers')
-        if 'pedestrian' in raw_text and ('way' in raw_text or 'sidewalk' in raw_text or 'footpath' in raw_text):
-            side_features.add('pedestrian way')
+        
+        # Detect pedestrian areas - check for various terms
+        if ('pedestrian' in raw_text or 'sidewalk' in raw_text or 'footpath' in raw_text or
+            'pavement' in raw_text or 'walkway' in raw_text):
+            side_features.add('pedestrian pavement')
+        
         if 'cycle' in raw_text or 'bike lane' in raw_text or 'bicycle lane' in raw_text:
             side_features.add('cycle lane')
+        
         if 'open side' in raw_text or ('no barrier' in raw_text and 'open' in raw_text):
             side_features.add('open side')
     

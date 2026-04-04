@@ -1,110 +1,91 @@
-/* Reset and Base Styles */
+/* Global Styles */
 * {
     margin: 0;
     padding: 0;
     box-sizing: border-box;
 }
 
-:root {
-    --primary-color: #0f62fe;
-    --secondary-color: #393939;
-    --success-color: #24a148;
-    --warning-color: #f1c21b;
-    --danger-color: #da1e28;
-    --critical-color: #8a3ffc;
-    --bg-color: #f4f4f4;
-    --card-bg: #ffffff;
-    --text-primary: #161616;
-    --text-secondary: #525252;
-    --border-color: #e0e0e0;
-    --shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-    --shadow-lg: 0 4px 16px rgba(0, 0, 0, 0.15);
-}
-
 body {
-    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+    font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
     background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
     min-height: 100vh;
-    color: var(--text-primary);
-    line-height: 1.6;
+    padding: 20px;
+    color: #161616;
 }
 
 .container {
-    max-width: 1200px;
+    max-width: 1400px;
     margin: 0 auto;
-    padding: 2rem;
 }
 
 /* Header */
 .header {
     text-align: center;
     color: white;
-    margin-bottom: 3rem;
-    animation: fadeInDown 0.6s ease-out;
+    margin-bottom: 40px;
 }
 
 .logo {
     display: flex;
     align-items: center;
     justify-content: center;
-    gap: 1rem;
-    margin-bottom: 0.5rem;
+    gap: 15px;
+    margin-bottom: 10px;
 }
 
 .logo i {
-    font-size: 3rem;
+    font-size: 48px;
 }
 
 .header h1 {
-    font-size: 2.5rem;
+    font-size: 42px;
     font-weight: 600;
-    margin: 0;
 }
 
 .subtitle {
-    font-size: 1.1rem;
-    opacity: 0.9;
-    margin-top: 0.5rem;
+    font-size: 18px;
+    opacity: 0.95;
 }
 
 /* Upload Section */
 .upload-section {
-    animation: fadeInUp 0.6s ease-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
 }
 
 .upload-card {
-    background: var(--card-bg);
+    background: white;
     border-radius: 16px;
-    padding: 3rem;
-    box-shadow: var(--shadow-lg);
+    padding: 60px 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     text-align: center;
-    transition: transform 0.3s ease;
-}
-
-.upload-card:hover {
-    transform: translateY(-4px);
+    max-width: 600px;
+    width: 100%;
 }
 
 .upload-icon {
-    font-size: 4rem;
-    color: var(--primary-color);
-    margin-bottom: 1.5rem;
+    font-size: 80px;
+    color: #0f62fe;
+    margin-bottom: 20px;
 }
 
 .upload-card h2 {
-    font-size: 2rem;
-    margin-bottom: 0.5rem;
-    color: var(--text-primary);
+    font-size: 32px;
+    margin-bottom: 10px;
+    color: #161616;
 }
 
 .upload-card p {
-    color: var(--text-secondary);
-    margin-bottom: 2rem;
+    color: #525252;
+    margin-bottom: 30px;
+    font-size: 16px;
 }
 
 /* File Input */
 .file-input-wrapper {
-    margin-bottom: 2rem;
+    margin-bottom: 20px;
 }
 
 .file-input-wrapper input[type="file"] {
@@ -112,380 +93,140 @@ body {
 }
 
 .file-label {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.75rem;
-    padding: 1rem 2rem;
-    background: var(--bg-color);
-    border: 2px dashed var(--border-color);
+    display: inline-block;
+    padding: 20px 40px;
+    background: #f4f4f4;
+    border: 2px dashed #8d8d8d;
     border-radius: 8px;
     cursor: pointer;
     transition: all 0.3s ease;
-    font-size: 1rem;
-    color: var(--text-secondary);
+    font-size: 16px;
+    color: #161616;
 }
 
 .file-label:hover {
-    border-color: var(--primary-color);
-    background: #e8f0fe;
-    color: var(--primary-color);
+    background: #e8e8e8;
+    border-color: #0f62fe;
 }
 
 .file-label i {
-    font-size: 1.5rem;
+    margin-right: 10px;
+    font-size: 20px;
 }
 
 /* Buttons */
 .btn {
-    display: inline-flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.875rem 2rem;
+    padding: 16px 32px;
     border: none;
     border-radius: 8px;
-    font-size: 1rem;
-    font-weight: 500;
+    font-size: 16px;
+    font-weight: 600;
     cursor: pointer;
     transition: all 0.3s ease;
-    text-decoration: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
 }
 
 .btn-primary {
-    background: var(--primary-color);
+    background: #0f62fe;
     color: white;
 }
 
 .btn-primary:hover {
     background: #0353e9;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(15, 98, 254, 0.3);
+    box-shadow: 0 4px 12px rgba(15, 98, 254, 0.4);
 }
 
 .btn-secondary {
-    background: var(--secondary-color);
+    background: #393939;
     color: white;
 }
 
 .btn-secondary:hover {
     background: #262626;
-    transform: translateY(-2px);
-}
-
-.btn:disabled {
-    opacity: 0.6;
-    cursor: not-allowed;
-    transform: none;
 }
 
 .supported-formats {
-    margin-top: 1.5rem;
-    color: var(--text-secondary);
+    margin-top: 20px;
+    color: #525252;
 }
 
 /* Progress Section */
 .progress-section {
-    animation: fadeIn 0.6s ease-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
 }
 
 .progress-card {
-    background: var(--card-bg);
+    background: white;
     border-radius: 16px;
-    padding: 3rem;
-    box-shadow: var(--shadow-lg);
+    padding: 60px 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     text-align: center;
+    max-width: 600px;
+    width: 100%;
 }
 
 .progress-icon {
-    font-size: 4rem;
-    color: var(--primary-color);
-    margin-bottom: 1.5rem;
+    font-size: 80px;
+    color: #0f62fe;
+    margin-bottom: 20px;
 }
 
 .progress-card h3 {
-    font-size: 1.75rem;
-    margin-bottom: 0.5rem;
+    font-size: 28px;
+    margin-bottom: 10px;
 }
 
 .progress-card p {
-    color: var(--text-secondary);
-    margin-bottom: 2rem;
+    color: #525252;
+    margin-bottom: 30px;
 }
 
 .progress-bar {
     width: 100%;
-    height: 8px;
-    background: var(--bg-color);
-    border-radius: 4px;
+    height: 12px;
+    background: #e0e0e0;
+    border-radius: 6px;
     overflow: hidden;
-    margin-bottom: 1rem;
+    margin-bottom: 10px;
 }
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, var(--primary-color), var(--critical-color));
-    border-radius: 4px;
+    background: linear-gradient(90deg, #0f62fe, #0353e9);
+    border-radius: 6px;
     transition: width 0.3s ease;
-    animation: pulse 2s infinite;
+    width: 0%;
 }
 
-/* Results Section */
+/* Results Section - SIMPLIFIED */
 .results-section {
-    animation: fadeIn 0.6s ease-out;
-}
-
-.summary-cards {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1.5rem;
-    margin-bottom: 2rem;
-}
-
-.summary-card {
-    background: var(--card-bg);
-    border-radius: 12px;
-    padding: 1.5rem;
-    box-shadow: var(--shadow);
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-    transition: transform 0.3s ease;
-}
-
-.summary-card:hover {
-    transform: translateY(-4px);
-    box-shadow: var(--shadow-lg);
-}
-
-.card-icon {
-    font-size: 2.5rem;
-    width: 60px;
-    height: 60px;
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    border-radius: 12px;
-}
-
-.summary-card.critical .card-icon {
-    background: #fff1f1;
-    color: var(--danger-color);
-}
-
-.summary-card.priority .card-icon {
-    background: #fef7e0;
-    color: var(--warning-color);
-}
-
-.summary-card.frames .card-icon {
-    background: #e8f0fe;
-    color: var(--primary-color);
-}
-
-.summary-card.detection .card-icon {
-    background: #defbe6;
-    color: var(--success-color);
-}
-
-.card-content h3 {
-    font-size: 2rem;
-    font-weight: 600;
-    margin-bottom: 0.25rem;
-}
-
-.card-content p {
-    color: var(--text-secondary);
-    font-size: 0.875rem;
-}
-
-/* Severity Section */
-.severity-section,
-.potholes-section {
-    background: var(--card-bg);
+    background: white;
     border-radius: 16px;
-    padding: 2rem;
-    box-shadow: var(--shadow);
-    margin-bottom: 2rem;
+    padding: 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
 }
 
-.severity-section h2,
-.potholes-section h2 {
+/* Video Container */
+.video-container {
+    margin-bottom: 40px;
+}
+
+.video-container h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #161616;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-    font-size: 1.5rem;
+    gap: 10px;
 }
 
-.severity-bars {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.severity-bar {
-    display: flex;
-    align-items: center;
-    gap: 1rem;
-}
-
-.severity-label {
-    min-width: 100px;
-    font-weight: 500;
-    text-transform: capitalize;
-}
-
-.severity-progress {
-    flex: 1;
-    height: 32px;
-    background: var(--bg-color);
-    border-radius: 8px;
-    overflow: hidden;
-    position: relative;
-}
-
-.severity-fill {
-    height: 100%;
-    display: flex;
-    align-items: center;
-    padding: 0 1rem;
-    color: white;
-    font-weight: 500;
-    transition: width 0.6s ease;
-}
-
-.severity-fill.critical {
-    background: var(--danger-color);
-}
-
-.severity-fill.high {
-    background: var(--warning-color);
-    color: var(--text-primary);
-}
-
-.severity-fill.medium {
-    background: var(--primary-color);
-}
-
-.severity-fill.low {
-    background: var(--success-color);
-}
-
-/* Pothole Cards */
-.potholes-list {
-    display: flex;
-    flex-direction: column;
-    gap: 1rem;
-}
-
-.pothole-card {
-    border: 2px solid var(--border-color);
-    border-radius: 12px;
-    padding: 1.5rem;
-    transition: all 0.3s ease;
-}
-
-.pothole-card:hover {
-    border-color: var(--primary-color);
-    box-shadow: var(--shadow);
-}
-
-.pothole-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 1rem;
-}
-
-.pothole-title {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    font-size: 1.25rem;
-    font-weight: 600;
-}
-
-.severity-badge {
-    padding: 0.25rem 0.75rem;
-    border-radius: 20px;
-    font-size: 0.875rem;
-    font-weight: 500;
-    text-transform: uppercase;
-}
-
-.severity-badge.critical {
-    background: #fff1f1;
-    color: var(--danger-color);
-}
-
-.severity-badge.high {
-    background: #fef7e0;
-    color: #8e6a00;
-}
-
-.severity-badge.medium {
-    background: #e8f0fe;
-    color: var(--primary-color);
-}
-
-.severity-badge.low {
-    background: #defbe6;
-    color: var(--success-color);
-}
-
-.pothole-details {
-    display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-    gap: 1rem;
-    margin-bottom: 1rem;
-}
-
-.detail-item {
-    display: flex;
-    flex-direction: column;
-}
-
-.detail-label {
-    font-size: 0.875rem;
-    color: var(--text-secondary);
-    margin-bottom: 0.25rem;
-}
-
-.detail-value {
-    font-weight: 500;
-    color: var(--text-primary);
-}
-
-.pothole-description {
-    padding: 1rem;
-    background: var(--bg-color);
-    border-radius: 8px;
-    color: var(--text-secondary);
-    line-height: 1.6;
-}
-
-/* Actions */
-.actions {
-    display: flex;
-    gap: 1rem;
-
-/* Video Player Section */
-.video-section {
-    background: var(--card-bg);
-    border-radius: 16px;
-    padding: 2rem;
-    box-shadow: var(--shadow);
-    margin-bottom: 2rem;
-}
-
-.video-section h2 {
-    display: flex;
-    align-items: center;
-    gap: 0.75rem;
-    margin-bottom: 1.5rem;
-    font-size: 1.5rem;
-}
-
-.video-player-container {
+.video-wrapper {
     position: relative;
     background: #000;
     border-radius: 12px;
@@ -498,218 +239,228 @@ body {
     display: block;
 }
 
-.video-controls {
-    position: relative;
-    background: var(--secondary-color);
-    padding: 0.5rem;
-}
-
-.timeline-markers {
+.video-timeline {
     position: relative;
     height: 8px;
-    background: rgba(255, 255, 255, 0.2);
-    border-radius: 4px;
-    overflow: visible;
+    background: #393939;
+}
+
+#timelineMarkers {
+    position: relative;
+    height: 100%;
 }
 
 .timeline-marker {
     position: absolute;
     width: 4px;
-    height: 16px;
-    top: -4px;
-    border-radius: 2px;
+    height: 100%;
     cursor: pointer;
-    transition: all 0.2s ease;
+    transition: all 0.2s;
 }
 
 .timeline-marker:hover {
-    height: 20px;
-    top: -6px;
+    height: 150%;
+    top: -25%;
 }
 
 .timeline-marker.critical {
-    background: var(--danger-color);
+    background: #da1e28;
 }
 
 .timeline-marker.high {
-    background: var(--warning-color);
+    background: #f1c21b;
 }
 
 .timeline-marker.medium {
-    background: var(--primary-color);
+    background: #0f62fe;
 }
 
 .timeline-marker.low {
-    background: var(--success-color);
+    background: #24a148;
 }
 
-.timeline-marker:hover::after {
-    content: attr(data-time);
-    position: absolute;
-    bottom: 100%;
-    left: 50%;
-    transform: translateX(-50%);
-    background: rgba(0, 0, 0, 0.9);
-    color: white;
-    padding: 0.25rem 0.5rem;
-    border-radius: 4px;
-    font-size: 0.75rem;
-    white-space: nowrap;
-    margin-bottom: 4px;
+/* Summary Section */
+.summary-section {
+    margin-bottom: 40px;
 }
 
-.current-detection {
-    position: absolute;
-    top: 1rem;
-    left: 1rem;
-    right: 1rem;
-    z-index: 10;
-    animation: slideInDown 0.3s ease-out;
-}
-
-.detection-alert {
-    background: rgba(218, 30, 40, 0.95);
-    color: white;
-    padding: 1rem 1.5rem;
-    border-radius: 8px;
+.summary-section h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #161616;
     display: flex;
     align-items: center;
-    gap: 0.75rem;
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.3);
-    font-size: 1rem;
+    gap: 10px;
 }
 
-.detection-alert i {
-    font-size: 1.5rem;
+.summary-box {
+    background: #f4f4f4;
+    border-left: 4px solid #0f62fe;
+    padding: 20px;
+    border-radius: 8px;
 }
 
-.detection-alert strong {
-    margin-right: 0.5rem;
+.summary-box p {
+    font-size: 16px;
+    line-height: 1.6;
+    color: #161616;
 }
 
-@keyframes slideInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-20px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
+/* Frames Section */
+.frames-section {
+    margin-bottom: 40px;
 }
+
+.frames-section h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #161616;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.frames-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+    gap: 20px;
+}
+
+.frame-card {
+    background: #f4f4f4;
+    border-radius: 12px;
+    overflow: hidden;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.frame-card:hover {
+    transform: translateY(-4px);
+    box-shadow: 0 8px 24px rgba(0, 0, 0, 0.2);
+}
+
+.frame-card img {
+    width: 100%;
+    height: 200px;
+    object-fit: cover;
+    display: block;
+}
+
+.frame-info {
+    padding: 12px;
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+}
+
+.severity-badge {
+    padding: 4px 12px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: white;
+}
+
+.severity-badge.critical {
+    background: #da1e28;
+}
+
+.severity-badge.high {
+    background: #f1c21b;
+    color: #161616;
+}
+
+.severity-badge.medium {
+    background: #0f62fe;
+}
+
+.severity-badge.low {
+    background: #24a148;
+}
+
+.frame-time {
+    font-size: 14px;
+    color: #525252;
+    font-weight: 500;
+}
+
+/* Action Buttons */
+.action-buttons {
+    display: flex;
+    gap: 20px;
     justify-content: center;
-    flex-wrap: wrap;
-    margin-top: 2rem;
+    padding-top: 20px;
+    border-top: 1px solid #e0e0e0;
 }
 
 /* Error Section */
 .error-section {
-    animation: fadeIn 0.6s ease-out;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    min-height: 400px;
 }
 
 .error-card {
-    background: var(--card-bg);
+    background: white;
     border-radius: 16px;
-    padding: 3rem;
-    box-shadow: var(--shadow-lg);
+    padding: 60px 40px;
+    box-shadow: 0 20px 60px rgba(0, 0, 0, 0.3);
     text-align: center;
+    max-width: 600px;
+    width: 100%;
 }
 
 .error-icon {
-    font-size: 4rem;
-    color: var(--danger-color);
-    margin-bottom: 1.5rem;
+    font-size: 80px;
+    color: #da1e28;
+    margin-bottom: 20px;
 }
 
-.error-card h3 {
-    font-size: 1.75rem;
-    margin-bottom: 1rem;
-    color: var(--danger-color);
+.error-card h2 {
+    font-size: 28px;
+    margin-bottom: 10px;
+    color: #da1e28;
 }
 
 .error-card p {
-    color: var(--text-secondary);
-    margin-bottom: 2rem;
+    color: #525252;
+    margin-bottom: 30px;
+    font-size: 16px;
 }
 
 /* Footer */
 .footer {
     text-align: center;
     color: white;
-    margin-top: 3rem;
-    padding: 2rem 0;
-    opacity: 0.9;
-}
-
-/* Animations */
-@keyframes fadeIn {
-    from {
-        opacity: 0;
-    }
-    to {
-        opacity: 1;
-    }
-}
-
-@keyframes fadeInUp {
-    from {
-        opacity: 0;
-        transform: translateY(30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes fadeInDown {
-    from {
-        opacity: 0;
-        transform: translateY(-30px);
-    }
-    to {
-        opacity: 1;
-        transform: translateY(0);
-    }
-}
-
-@keyframes pulse {
-    0%, 100% {
-        opacity: 1;
-    }
-    50% {
-        opacity: 0.7;
-    }
+    margin-top: 40px;
+    padding: 20px;
+    font-size: 14px;
 }
 
 /* Responsive Design */
 @media (max-width: 768px) {
-    .container {
-        padding: 1rem;
-    }
-
     .header h1 {
-        font-size: 2rem;
+        font-size: 32px;
     }
-
-    .upload-card,
-    .progress-card,
-    .error-card {
-        padding: 2rem 1.5rem;
+    
+    .upload-card, .progress-card, .error-card {
+        padding: 40px 20px;
     }
-
-    .summary-cards {
+    
+    .results-section {
+        padding: 20px;
+    }
+    
+    .frames-grid {
         grid-template-columns: 1fr;
     }
-
-    .pothole-details {
-        grid-template-columns: 1fr;
-    }
-
-    .actions {
+    
+    .action-buttons {
         flex-direction: column;
     }
-
+    
     .btn {
         width: 100%;
         justify-content: center;
@@ -717,58 +468,3 @@ body {
 }
 
 /* Made with Bob */
-
-
-/* Summary Report Section */
-.summary-report {
-    margin: 2rem 0;
-}
-
-.summary-report h2 {
-    color: #161616;
-    font-size: 1.5rem;
-    margin-bottom: 1rem;
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-}
-
-.report-card {
-    background: white;
-    border-radius: 8px;
-    padding: 1.5rem;
-    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
-}
-
-.summary-text {
-    font-size: 1rem;
-    line-height: 1.8;
-    color: #525252;
-    text-align: justify;
-}
-
-
-/* Pothole Frame Images */
-.pothole-frame {
-    margin: 1rem 0;
-    border-radius: 8px;
-    overflow: hidden;
-    background: #f4f4f4;
-}
-
-.pothole-frame img {
-    width: 100%;
-    height: auto;
-    display: block;
-    max-height: 400px;
-    object-fit: contain;
-}
-
-.frame-label {
-    padding: 0.5rem;
-    background: #f4f4f4;
-    color: #525252;
-    font-size: 0.875rem;
-    text-align: center;
-    border-top: 1px solid #e0e0e0;
-}

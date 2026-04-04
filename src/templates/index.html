@@ -63,107 +63,46 @@
             </div>
         </section>
 
-        <!-- Results Section -->
+        <!-- Results Section - SIMPLIFIED -->
         <section class="results-section" id="resultsSection" style="display: none;">
-            <!-- Summary Cards -->
-            <div class="summary-cards">
-                <div class="summary-card critical">
-                    <div class="card-icon">
-                        <i class="fas fa-exclamation-triangle"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3 id="totalPotholes">0</h3>
-                        <p>Total Potholes</p>
-                    </div>
-                </div>
-
-                <div class="summary-card priority">
-                    <div class="card-icon">
-                        <i class="fas fa-flag"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3 id="overallPriority">-</h3>
-                        <p>Priority Level</p>
-                    </div>
-                </div>
-
-                <div class="summary-card frames">
-                    <div class="card-icon">
-                        <i class="fas fa-film"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3 id="framesAnalyzed">0</h3>
-                        <p>Frames Analyzed</p>
-                    </div>
-                </div>
-
-                <div class="summary-card detection">
-                    <div class="card-icon">
-                        <i class="fas fa-check-circle"></i>
-                    </div>
-                    <div class="card-content">
-                        <h3 id="detectionRate">0%</h3>
-                        <p>Detection Rate</p>
+            
+            <!-- Video Player -->
+            <div class="video-container">
+                <h2><i class="fas fa-play-circle"></i> Video Playback</h2>
+                <div class="video-wrapper">
+                    <video id="videoPlayer" controls>
+                        <source id="videoSource" type="video/mp4">
+                        Your browser does not support the video tag.
+                    </video>
+                    <div class="video-timeline">
+                        <div id="timelineMarkers"></div>
                     </div>
                 </div>
             </div>
 
             <!-- Summary Report -->
-            <div class="summary-report" id="summaryReport" style="display: none;">
-                <h2><i class="fas fa-file-alt"></i> Road Condition Summary</h2>
-                <div class="report-card">
-                    <p id="summaryText" class="summary-text"></p>
+            <div class="summary-section">
+                <h2><i class="fas fa-clipboard-list"></i> Road Condition Summary</h2>
+                <div class="summary-box">
+                    <p id="summaryText"></p>
                 </div>
             </div>
 
-            <!-- Severity Breakdown -->
-            <div class="severity-section">
-                <h2><i class="fas fa-chart-bar"></i> Severity Breakdown</h2>
-                <div class="severity-bars" id="severityBars">
-                    <!-- Dynamically populated -->
-                </div>
-
-            <!-- Video Player Section -->
-            <div class="video-section">
-                <h2><i class="fas fa-play-circle"></i> Video Playback with Detections</h2>
-                <div class="video-player-container">
-                    <video id="videoPlayer" controls>
-                        <source id="videoSource" type="video/mp4">
-                        Your browser does not support the video tag.
-                    </video>
-                    <div class="video-controls">
-                        <div class="timeline-markers" id="timelineMarkers">
-                            <!-- Pothole markers on timeline -->
-                        </div>
-                    </div>
-                    <div class="current-detection" id="currentDetection" style="display: none;">
-                        <div class="detection-alert">
-                            <i class="fas fa-exclamation-triangle"></i>
-                            <strong>Pothole Detected!</strong>
-                            <span id="detectionInfo"></span>
-                        </div>
-                    </div>
-                </div>
-            </div>
+            <!-- Detected Potholes Frames -->
+            <div class="frames-section">
+                <h2><i class="fas fa-images"></i> Detected Potholes</h2>
+                <div class="frames-grid" id="framesGrid"></div>
             </div>
 
-            <!-- Pothole Details -->
-            <div class="potholes-section">
-                <h2><i class="fas fa-list"></i> Detected Potholes (Ranked by Severity)</h2>
-                <div class="potholes-list" id="potholesList">
-                    <!-- Dynamically populated -->
-                </div>
-            </div>
-
-            <!-- Actions -->
-            <div class="actions">
-                <button class="btn btn-secondary" onclick="downloadReport()">
-                    <i class="fas fa-download"></i>
-                    Download Report
-                </button>
-                <button class="btn btn-primary" onclick="resetAnalysis()">
+            <!-- Action Buttons -->
+            <div class="action-buttons">
+                <button onclick="resetAnalysis()" class="btn btn-secondary">
                     <i class="fas fa-redo"></i>
                     Analyze Another Video
+                </button>
+                <button onclick="downloadReport()" class="btn btn-primary">
+                    <i class="fas fa-download"></i>
+                    Download Report
                 </button>
             </div>
         </section>
@@ -174,9 +113,9 @@
                 <div class="error-icon">
                     <i class="fas fa-exclamation-circle"></i>
                 </div>
-                <h3>Analysis Failed</h3>
-                <p id="errorMessage">An error occurred during analysis</p>
-                <button class="btn btn-primary" onclick="resetAnalysis()">
+                <h2>Analysis Failed</h2>
+                <p id="errorMessage"></p>
+                <button onclick="resetAnalysis()" class="btn btn-primary">
                     <i class="fas fa-redo"></i>
                     Try Again
                 </button>

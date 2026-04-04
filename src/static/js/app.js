@@ -1,8 +1,6 @@
 // Global variables
 let uploadedVideoFile = null;
 let videoObjectURL = null;
-
-// Global variables
 let analysisData = null;
 
 // DOM Elements
@@ -13,7 +11,6 @@ const errorSection = document.getElementById('errorSection');
 const uploadForm = document.getElementById('uploadForm');
 const videoFileInput = document.getElementById('videoFile');
 const fileNameSpan = document.getElementById('fileName');
-const analyzeBtn = document.getElementById('analyzeBtn');
 
 // File input change handler
 videoFileInput.addEventListener('change', (e) => {
@@ -52,20 +49,16 @@ uploadForm.addEventListener('submit', async (e) => {
 // Analyze video function
 async function analyzeVideo(file) {
     try {
-        // Show progress section
         showSection('progress');
         updateProgress(10, 'Uploading video...');
 
-        // Create form data
         const formData = new FormData();
         formData.append('video', file);
 
-        // Upload and analyze with timeout
         updateProgress(30, 'Extracting frames...');
         
-        // Create abort controller for timeout
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 600000); // 10 minute timeout
+        const timeoutId = setTimeout(() => controller.abort(), 600000);
         
         try {
             const response = await fetch('/analyze', {
@@ -82,19 +75,11 @@ async function analyzeVideo(file) {
             }
 
             updateProgress(90, 'Processing results...');
-            
-            console.log('Response received, parsing JSON...');
-            console.log('Response status:', response.status);
-            console.log('Response headers:', [...response.headers.entries()]);
-            
             const data = await response.json();
-            console.log('JSON parsed successfully');
-            console.log('Data:', data);
             
             if (data.success) {
                 analysisData = data.analysis;
                 updateProgress(100, 'Complete!');
-                console.log('Calling displayResults...');
                 setTimeout(() => displayResults(data.analysis), 500);
             } else {
                 throw new Error(data.error || 'Analysis failed');
@@ -122,135 +107,101 @@ function updateProgress(percent, text) {
     progressText.textContent = text;
 }
 
-// Display results
+// Display results - SIMPLIFIED VERSION
 function displayResults(analysis) {
-    // Update summary cards
-    document.getElementById('totalPotholes').textContent = analysis.total_potholes_detected || 0;
-    document.getElementById('overallPriority').textContent = (analysis.overall_priority || 'N/A').toUpperCase();
-    document.getElementById('framesAnalyzed').textContent = analysis.total_frames_analyzed || 0;
+    // Setup video player first
+    setupVideoPlayer(analysis.ranked_potholes || []);
     
-    const detectionRate = analysis.frames_with_potholes && analysis.total_frames_analyzed
-        ? Math.round((analysis.frames_with_potholes / analysis.total_frames_analyzed) * 100)
-        : 0;
-    document.getElementById('detectionRate').textContent = `${detectionRate}%`;
-
-    // Update priority card color
-    const priorityCard = document.querySelector('.summary-card.priority');
-    priorityCard.className = 'summary-card priority';
-    const priority = (analysis.overall_priority || '').toLowerCase();
-    if (priority === 'urgent' || priority === 'critical') {
-        priorityCard.style.borderLeft = '4px solid #da1e28';
-    } else if (priority === 'high') {
-        priorityCard.style.borderLeft = '4px solid #f1c21b';
-    } else if (priority === 'medium') {
-        priorityCard.style.borderLeft = '4px solid #0f62fe';
-    } else {
-        priorityCard.style.borderLeft = '4px solid #24a148';
-    }
-
-    // Display summary report
-    if (analysis.summary) {
-        const summaryReport = document.getElementById('summaryReport');
-        const summaryText = document.getElementById('summaryText');
-        summaryText.textContent = analysis.summary;
-        summaryReport.style.display = 'block';
-    }
-
-    // Display severity breakdown
-    displaySeverityBreakdown(analysis.severity_breakdown || {});
-
-    // Display pothole list
-    displayPotholeList(analysis.ranked_potholes || []);
-
+    // Display summary
+    const summaryText = document.getElementById('summaryText');
+    summaryText.textContent = analysis.summary || 'Analysis complete.';
+    
+    // Display only frames with potholes
+    displayPotholeFrames(analysis.ranked_potholes || []);
+    
     // Show results section
     showSection('results');
 }
 
-// Display severity breakdown
-function displaySeverityBreakdown(severityBreakdown) {
-    const severityBars = document.getElementById('severityBars');
-    severityBars.innerHTML = '';
-
-    const severities = ['critical', 'high', 'medium', 'low'];
-    const total = Object.values(severityBreakdown).reduce((sum, val) => sum + val, 0);
-
-    severities.forEach(severity => {
-        const count = severityBreakdown[severity] || 0;
-        const percentage = total > 0 ? (count / total) * 100 : 0;
-
-        const barHTML = `
-            <div class="severity-bar">
-                <div class="severity-label">${severity.charAt(0).toUpperCase() + severity.slice(1)}</div>
-                <div class="severity-progress">
-                    <div class="severity-fill ${severity}" style="width: ${percentage}%">
-                        ${count} (${Math.round(percentage)}%)
-                    </div>
-                </div>
-            </div>
-        `;
-        severityBars.innerHTML += barHTML;
-    });
-}
-
-// Display pothole list
-function displayPotholeList(potholes) {
-    const potholesList = document.getElementById('potholesList');
-    potholesList.innerHTML = '';
+// Display pothole frames in a grid
+function displayPotholeFrames(potholes) {
+    const framesGrid = document.getElementById('framesGrid');
+    framesGrid.innerHTML = '';
 
     if (potholes.length === 0) {
-        potholesList.innerHTML = '<p style="text-align: center; color: #525252;">No potholes detected in this video.</p>';
+        framesGrid.innerHTML = '<p style="text-align: center; color: #525252; grid-column: 1/-1;">No potholes detected in this video.</p>';
         return;
     }
 
     potholes.forEach((pothole, index) => {
-        // Build frame image HTML if available
-        const frameImageHTML = pothole.frame_url ? `
-            <div class="pothole-frame">
-                <img src="${pothole.frame_url}" alt="Frame ${pothole.frame_number}"
+        if (pothole.frame_url) {
+            const frameCard = document.createElement('div');
+            frameCard.className = 'frame-card';
+            frameCard.innerHTML = `
+                <img src="${pothole.frame_url}" alt="Pothole ${index + 1}" 
                      onerror="this.parentElement.style.display='none'">
-                <div class="frame-label">Frame ${pothole.frame_number} @ ${pothole.timestamp}s</div>
-            </div>
-        ` : '';
-        
-        const cardHTML = `
-            <div class="pothole-card">
-                <div class="pothole-header">
-                    <div class="pothole-title">
-                        <i class="fas fa-map-marker-alt"></i>
-                        Pothole #${index + 1}
-                    </div>
-                    <span class="severity-badge ${pothole.severity || 'low'}">
-                        ${(pothole.severity || 'low').toUpperCase()}
-                    </span>
+                <div class="frame-info">
+                    <span class="severity-badge ${pothole.severity || 'low'}">${(pothole.severity || 'low').toUpperCase()}</span>
+                    <span class="frame-time">${formatTimestamp(pothole.timestamp)}</span>
                 </div>
-                ${frameImageHTML}
-                <div class="pothole-details">
-                    <div class="detail-item">
-                        <span class="detail-label"><i class="fas fa-ruler"></i> Size</span>
-                        <span class="detail-value">${pothole.estimated_size || 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label"><i class="fas fa-map-pin"></i> Location</span>
-                        <span class="detail-value">${pothole.location || 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label"><i class="fas fa-arrows-alt-v"></i> Depth</span>
-                        <span class="detail-value">${pothole.depth_assessment || 'N/A'}</span>
-                    </div>
-                    <div class="detail-item">
-                        <span class="detail-label"><i class="fas fa-clock"></i> Timestamp</span>
-                        <span class="detail-value">${formatTimestamp(pothole.frame_info?.timestamp)}</span>
-                    </div>
-                </div>
-                ${pothole.description ? `
-                    <div class="pothole-description">
-                        <strong><i class="fas fa-info-circle"></i> Description:</strong><br>
-                        ${pothole.description}
-                    </div>
-                ` : ''}
-            </div>
-        `;
-        potholesList.innerHTML += cardHTML;
+            `;
+            
+            // Click to jump to this time in video
+            frameCard.addEventListener('click', () => {
+                const videoPlayer = document.getElementById('videoPlayer');
+                videoPlayer.currentTime = pothole.timestamp || 0;
+                videoPlayer.play();
+                videoPlayer.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            });
+            
+            framesGrid.appendChild(frameCard);
+        }
+    });
+}
+
+// Setup video player with pothole markers
+function setupVideoPlayer(potholes) {
+    if (!uploadedVideoFile) return;
+
+    const videoPlayer = document.getElementById('videoPlayer');
+    const videoSource = document.getElementById('videoSource');
+    const timelineMarkers = document.getElementById('timelineMarkers');
+
+    // Clean up previous video URL
+    if (videoObjectURL) {
+        URL.revokeObjectURL(videoObjectURL);
+    }
+
+    // Create object URL for uploaded video
+    videoObjectURL = URL.createObjectURL(uploadedVideoFile);
+    videoSource.src = videoObjectURL;
+    videoPlayer.load();
+
+    // Clear existing markers
+    timelineMarkers.innerHTML = '';
+
+    // Get video duration and create markers
+    videoPlayer.addEventListener('loadedmetadata', () => {
+        const duration = videoPlayer.duration;
+
+        // Create timeline markers for each pothole
+        potholes.forEach((pothole, index) => {
+            const timestamp = pothole.timestamp || 0;
+            const position = (timestamp / duration) * 100;
+
+            const marker = document.createElement('div');
+            marker.className = `timeline-marker ${pothole.severity || 'low'}`;
+            marker.style.left = `${position}%`;
+            marker.title = `${pothole.severity?.toUpperCase()} - ${formatTimestamp(timestamp)}`;
+
+            // Click marker to jump to that time
+            marker.addEventListener('click', () => {
+                videoPlayer.currentTime = timestamp;
+                videoPlayer.play();
+            });
+
+            timelineMarkers.appendChild(marker);
+        });
     });
 }
 
@@ -299,7 +250,6 @@ function resetAnalysis() {
     analysisData = null;
     uploadedVideoFile = null;
     
-    // Clean up video player
     const videoPlayer = document.getElementById('videoPlayer');
     if (videoPlayer) {
         videoPlayer.pause();
@@ -336,73 +286,3 @@ document.addEventListener('DOMContentLoaded', () => {
 });
 
 // Made with Bob
-
-// Setup video player with pothole markers
-function setupVideoPlayer(potholes) {
-    if (!uploadedVideoFile) return;
-
-    const videoPlayer = document.getElementById('videoPlayer');
-    const videoSource = document.getElementById('videoSource');
-    const timelineMarkers = document.getElementById('timelineMarkers');
-    const currentDetection = document.getElementById('currentDetection');
-    const detectionInfo = document.getElementById('detectionInfo');
-
-    // Clean up previous video URL
-    if (videoObjectURL) {
-        URL.revokeObjectURL(videoObjectURL);
-    }
-
-    // Create object URL for uploaded video
-    videoObjectURL = URL.createObjectURL(uploadedVideoFile);
-    videoSource.src = videoObjectURL;
-    videoPlayer.load();
-
-    // Clear existing markers
-    timelineMarkers.innerHTML = '';
-
-    // Get video duration and create markers
-    videoPlayer.addEventListener('loadedmetadata', () => {
-        const duration = videoPlayer.duration;
-
-        // Create timeline markers for each pothole
-        potholes.forEach((pothole, index) => {
-            const timestamp = pothole.frame_info?.timestamp || 0;
-            const position = (timestamp / duration) * 100;
-
-            const marker = document.createElement('div');
-            marker.className = `timeline-marker ${pothole.severity || 'low'}`;
-            marker.style.left = `${position}%`;
-            marker.dataset.time = formatTimestamp(timestamp);
-            marker.dataset.index = index;
-            marker.title = `${pothole.severity?.toUpperCase()} - ${formatTimestamp(timestamp)}`;
-
-            // Click marker to jump to that time
-            marker.addEventListener('click', () => {
-                videoPlayer.currentTime = timestamp;
-                videoPlayer.play();
-            });
-
-            timelineMarkers.appendChild(marker);
-        });
-    });
-
-    // Show detection alert when video reaches pothole timestamp
-    videoPlayer.addEventListener('timeupdate', () => {
-        const currentTime = videoPlayer.currentTime;
-        let detectionShown = false;
-
-        potholes.forEach((pothole) => {
-            const timestamp = pothole.frame_info?.timestamp || 0;
-            // Show alert if within 1 second of pothole
-            if (Math.abs(currentTime - timestamp) < 1) {
-                detectionInfo.textContent = `${pothole.severity?.toUpperCase()} severity at ${pothole.location || 'unknown location'}`;
-                currentDetection.style.display = 'block';
-                detectionShown = true;
-            }
-        });
-
-        if (!detectionShown) {
-            currentDetection.style.display = 'none';
-        }
-    });
-}

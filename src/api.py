@@ -57,9 +57,13 @@ def cleanup_old_files(directory, keep_current=None):
 
 
 def generate_summary_report(report):
-    """Generate a 3-line summary paragraph for maintenance teams."""
-    total = report.get('total_potholes', 0)
-    priority = report.get('priority_level', 'UNKNOWN')
+    """Generate a comprehensive 4-line summary paragraph consolidating all frame analyses."""
+    total_frames = report.get('total_frames_analyzed', 0)
+    frames_with_issues = report.get('frames_with_potholes', 0)
+    total_potholes = report.get('total_potholes_detected', 0)
+    
+    # Get all frame analyses
+    analyses = report.get('detailed_analyses', [])
     
     # Count by severity
     severity_counts = report.get('severity_breakdown', {})
@@ -68,41 +72,69 @@ def generate_summary_report(report):
     medium = severity_counts.get('medium', 0)
     low = severity_counts.get('low', 0)
     
-    # Build summary
-    if total == 0:
+    # Collect key observations from frame analyses
+    observations = []
+    for analysis in analyses:
+        if analysis.get('potholes_detected'):
+            raw_text = analysis.get('raw_response', '')
+            # Extract key phrases about potholes
+            if 'large pothole' in raw_text.lower():
+                observations.append('large potholes')
+            elif 'puddle' in raw_text.lower() or 'water' in raw_text.lower():
+                observations.append('water accumulation')
+            elif 'crack' in raw_text.lower():
+                observations.append('surface cracks')
+    
+    # Remove duplicates
+    observations = list(set(observations))
+    
+    # Build 4-line summary
+    if total_potholes == 0:
         summary = (
-            "Road Condition Assessment: This road segment is in good condition with no significant potholes detected. "
-            "Road markings are clear and the surface appears well-maintained. "
-            "Routine monitoring is recommended to maintain current standards."
+            f"Video Analysis Summary: Analyzed {total_frames} frames from the road segment. "
+            f"The road surface appears to be in good overall condition with no significant potholes or defects detected. "
+            f"Road markings are clear and visible, and the pavement surface is well-maintained throughout the segment. "
+            f"Routine monitoring is recommended to maintain current infrastructure standards and ensure continued road safety."
         )
     else:
-        # Line 1: Overall condition
-        condition = "poor" if critical > 0 or priority == "URGENT" else "fair" if high > 0 else "acceptable"
-        line1 = f"Road Condition Assessment: This road segment is in {condition} condition with {total} pothole{'s' if total != 1 else ''} detected requiring attention."
+        # Line 1: Overview
+        condition = "poor" if critical > 0 else "fair" if high > 0 else "acceptable" if medium > 0 else "good"
+        line1 = f"Video Analysis Summary: Analyzed {total_frames} frames from the road segment, identifying issues in {frames_with_issues} frames with {total_potholes} total defect{'s' if total_potholes != 1 else ''} detected."
         
-        # Line 2: Severity breakdown
+        # Line 2: Severity and observations
         severity_parts = []
         if critical > 0:
             severity_parts.append(f"{critical} critical")
         if high > 0:
-            severity_parts.append(f"{high} high-priority")
+            severity_parts.append(f"{high} high-severity")
         if medium > 0:
-            severity_parts.append(f"{medium} medium")
+            severity_parts.append(f"{medium} medium-severity")
         if low > 0:
             severity_parts.append(f"{low} low-severity")
         
         severity_text = ", ".join(severity_parts) if severity_parts else "various"
-        line2 = f"Severity Distribution: Identified {severity_text} defects that impact road safety and require maintenance intervention."
+        obs_text = ", ".join(observations[:3]) if observations else "road surface defects"
+        line2 = f"The road segment is in {condition} condition with {severity_text} defects identified, including {obs_text} that require maintenance attention."
         
-        # Line 3: Recommendations
-        if critical > 0 or priority == "URGENT":
-            line3 = "Maintenance Priority: Immediate repair action is strongly recommended for critical defects to prevent vehicle damage and ensure public safety."
-        elif high > 0:
-            line3 = "Maintenance Priority: Prompt repair is recommended within the next maintenance cycle to prevent deterioration and maintain road quality."
+        # Line 3: Impact assessment
+        if critical > 0:
+            line3 = "Critical defects pose immediate safety risks to vehicles and may cause damage or accidents if left unaddressed, particularly affecting vehicle suspension and tire integrity."
+        elif high > 0 or medium > 0:
+            line3 = "The identified defects impact road quality and driving comfort, with potential for deterioration if not addressed in upcoming maintenance cycles."
         else:
-            line3 = "Maintenance Priority: Schedule repairs during routine maintenance to address identified defects and maintain road infrastructure standards."
+            line3 = "Minor surface issues were detected that should be monitored and addressed during routine maintenance to prevent further degradation."
         
-        summary = f"{line1} {line2} {line3}"
+        # Line 4: Recommendations
+        if critical > 0:
+            line4 = "Immediate repair action is strongly recommended for critical defects to prevent vehicle damage, ensure public safety, and avoid liability concerns."
+        elif high > 0:
+            line4 = "Prompt repair is recommended within the next maintenance cycle to prevent deterioration and maintain road quality standards."
+        elif medium > 0:
+            line4 = "Schedule repairs during the next planned maintenance window to address identified defects and maintain infrastructure standards."
+        else:
+            line4 = "Include these minor issues in routine maintenance planning to maintain optimal road conditions and prevent future problems."
+        
+        summary = f"{line1} {line2} {line3} {line4}"
     
     return summary
 

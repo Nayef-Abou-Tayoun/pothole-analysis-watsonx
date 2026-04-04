@@ -87,7 +87,7 @@ class PotholeAnalyzer:
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": "Any issue with the road?"},
+                        {"type": "text", "text": "Analyze this road image: 1) Any potholes? If yes, describe size and location. 2) How many lanes do you see? 3) What's on the sides (barriers, pavement, cycle lane, or open)?"},
                         {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
                     ]
                 }

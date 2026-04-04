@@ -138,14 +138,15 @@ def generate_summary_report(report):
         if 'light' in raw_text or 'street light' in raw_text or 'lamp' in raw_text or 'lighting' in raw_text:
             has_street_lights = True
         
-        # Detect number of lanes - count from AI description
-        if 'two lane' in raw_text or '2 lane' in raw_text or 'two-lane' in raw_text:
-            num_lanes = 2
-        elif 'three lane' in raw_text or '3 lane' in raw_text or 'three-lane' in raw_text:
-            num_lanes = 3
-        elif 'four lane' in raw_text or '4 lane' in raw_text or 'four-lane' in raw_text:
+        # Detect number of lanes - AI counts them from the image
+        # Look for explicit lane counts
+        if '4 lane' in raw_text or 'four lane' in raw_text:
             num_lanes = 4
-        elif 'single lane' in raw_text or '1 lane' in raw_text or 'one lane' in raw_text:
+        elif '3 lane' in raw_text or 'three lane' in raw_text:
+            num_lanes = 3
+        elif '2 lane' in raw_text or 'two lane' in raw_text:
+            num_lanes = 2
+        elif '1 lane' in raw_text or 'one lane' in raw_text or 'single lane' in raw_text:
             num_lanes = 1
         
         # Detect weather conditions
@@ -160,11 +161,11 @@ def generate_summary_report(report):
         elif 'cloudy' in raw_text or 'overcast' in raw_text:
             weather_condition = 'cloudy'
         
-        # Detect side features (only add if explicitly mentioned)
-        if 'concrete barrier' in raw_text or 'traffic barrier' in raw_text:
+        # Detect side features - track counts to find most prominent
+        if 'concrete barrier' in raw_text or 'traffic barrier' in raw_text or 'barrier' in raw_text:
             side_features.add('concrete traffic barriers')
         
-        # Detect pedestrian areas - check for various terms
+        # Detect pedestrian areas
         if ('pedestrian' in raw_text or 'sidewalk' in raw_text or 'footpath' in raw_text or
             'pavement' in raw_text or 'walkway' in raw_text):
             side_features.add('pedestrian pavement')
@@ -172,7 +173,7 @@ def generate_summary_report(report):
         if 'cycle' in raw_text or 'bike lane' in raw_text or 'bicycle lane' in raw_text:
             side_features.add('cycle lane')
         
-        if 'open side' in raw_text or ('no barrier' in raw_text and 'open' in raw_text):
+        if 'open side' in raw_text or 'open' in raw_text:
             side_features.add('open side')
     
     # Build summary
@@ -204,9 +205,18 @@ def generate_summary_report(report):
         if num_lanes:
             line2_parts.append(f"It is a {num_lanes} lane street.")
         
+        # Show only the most prominent side feature (first one found is usually most visible)
         if side_features:
-            sides_text = ", ".join(sorted(side_features))  # Sort for consistent order
-            line2_parts.append(f"Sides have {sides_text}.")
+            # Priority order: barriers > pedestrian > cycle > open
+            if 'concrete traffic barriers' in side_features:
+                prominent_feature = 'concrete traffic barriers'
+            elif 'pedestrian pavement' in side_features:
+                prominent_feature = 'pedestrian pavement'
+            elif 'cycle lane' in side_features:
+                prominent_feature = 'cycle lane'
+            else:
+                prominent_feature = 'open side'
+            line2_parts.append(f"Sides have {prominent_feature}.")
         
         line2_parts.append(f"Overall traffic conditions: {traffic_desc}.")
         

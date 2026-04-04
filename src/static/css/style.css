@@ -717,3 +717,32 @@ body {
 }
 
 /* Made with Bob */
+
+
+/* Summary Report Section */
+.summary-report {
+    margin: 2rem 0;
+}
+
+.summary-report h2 {
+    color: #161616;
+    font-size: 1.5rem;
+    margin-bottom: 1rem;
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+}
+
+.report-card {
+    background: white;
+    border-radius: 8px;
+    padding: 1.5rem;
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+}
+
+.summary-text {
+    font-size: 1rem;
+    line-height: 1.8;
+    color: #525252;
+    text-align: justify;
+}

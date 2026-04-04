@@ -4,6 +4,7 @@ Flask API for pothole video analysis - designed for IBM Code Engine deployment.
 import os
 import json
 import tempfile
+import shutil
 from pathlib import Path
 from flask import Flask, request, jsonify, send_file, render_template
 from werkzeug.utils import secure_filename
@@ -34,6 +35,76 @@ ALLOWED_EXTENSIONS = {'mp4', 'avi', 'mov', 'mkv', 'webm'}
 def allowed_file(filename):
     """Check if file extension is allowed."""
     return '.' in filename and filename.rsplit('.', 1)[1].lower() in ALLOWED_EXTENSIONS
+
+
+def cleanup_old_files(directory, keep_current=None):
+    """Clean up old files and directories, optionally keeping current one."""
+    try:
+        if os.path.exists(directory):
+            for item in os.listdir(directory):
+                item_path = os.path.join(directory, item)
+                if keep_current and item == keep_current:
+                    continue
+                try:
+                    if os.path.isfile(item_path):
+                        os.remove(item_path)
+                    elif os.path.isdir(item_path):
+                        shutil.rmtree(item_path)
+                except Exception as e:
+                    print(f"Warning: Could not delete {item_path}: {e}")
+    except Exception as e:
+        print(f"Warning: Cleanup failed for {directory}: {e}")
+
+
+def generate_summary_report(report):
+    """Generate a 3-line summary paragraph for maintenance teams."""
+    total = report.get('total_potholes', 0)
+    priority = report.get('priority_level', 'UNKNOWN')
+    
+    # Count by severity
+    severity_counts = report.get('severity_breakdown', {})
+    critical = severity_counts.get('critical', 0)
+    high = severity_counts.get('high', 0)
+    medium = severity_counts.get('medium', 0)
+    low = severity_counts.get('low', 0)
+    
+    # Build summary
+    if total == 0:
+        summary = (
+            "Road Condition Assessment: This road segment is in good condition with no significant potholes detected. "
+            "Road markings are clear and the surface appears well-maintained. "
+            "Routine monitoring is recommended to maintain current standards."
+        )
+    else:
+        # Line 1: Overall condition
+        condition = "poor" if critical > 0 or priority == "URGENT" else "fair" if high > 0 else "acceptable"
+        line1 = f"Road Condition Assessment: This road segment is in {condition} condition with {total} pothole{'s' if total != 1 else ''} detected requiring attention."
+        
+        # Line 2: Severity breakdown
+        severity_parts = []
+        if critical > 0:
+            severity_parts.append(f"{critical} critical")
+        if high > 0:
+            severity_parts.append(f"{high} high-priority")
+        if medium > 0:
+            severity_parts.append(f"{medium} medium")
+        if low > 0:
+            severity_parts.append(f"{low} low-severity")
+        
+        severity_text = ", ".join(severity_parts) if severity_parts else "various"
+        line2 = f"Severity Distribution: Identified {severity_text} defects that impact road safety and require maintenance intervention."
+        
+        # Line 3: Recommendations
+        if critical > 0 or priority == "URGENT":
+            line3 = "Maintenance Priority: Immediate repair action is strongly recommended for critical defects to prevent vehicle damage and ensure public safety."
+        elif high > 0:
+            line3 = "Maintenance Priority: Prompt repair is recommended within the next maintenance cycle to prevent deterioration and maintain road quality."
+        else:
+            line3 = "Maintenance Priority: Schedule repairs during routine maintenance to address identified defects and maintain road infrastructure standards."
+        
+        summary = f"{line1} {line2} {line3}"
+    
+    return summary
 
 
 def initialize_analyzer():
@@ -154,6 +225,10 @@ def analyze_video():
                 'received': file.filename
             }), 400
         
+        # Clean up old uploads and outputs before processing new file
+        cleanup_old_files(app.config['UPLOAD_FOLDER'])
+        cleanup_old_files(app.config['OUTPUT_FOLDER'])
+        
         # Save uploaded file
         filename = secure_filename(file.filename)
         video_path = os.path.join(app.config['UPLOAD_FOLDER'], filename)
@@ -259,9 +334,17 @@ def analyze_video():
         report['video_info'] = video_info
         print("Video info added")
         
-        # Clean up uploaded file
+        # Generate summary report
+        print("Generating summary report...")
+        summary = generate_summary_report(report)
+        report['summary'] = summary
+        print("Summary report generated")
+        
+        # Clean up uploaded file and frames
         print("Cleaning up files...")
         os.remove(video_path)
+        if os.path.exists(output_dir):
+            shutil.rmtree(output_dir)
         print("Cleanup complete")
         
         # Return analysis

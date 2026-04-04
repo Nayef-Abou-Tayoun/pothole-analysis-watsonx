@@ -148,6 +148,14 @@ function displayResults(analysis) {
         priorityCard.style.borderLeft = '4px solid #24a148';
     }
 
+    // Display summary report
+    if (analysis.summary) {
+        const summaryReport = document.getElementById('summaryReport');
+        const summaryText = document.getElementById('summaryText');
+        summaryText.textContent = analysis.summary;
+        summaryReport.style.display = 'block';
+    }
+
     // Display severity breakdown
     displaySeverityBreakdown(analysis.severity_breakdown || {});
 

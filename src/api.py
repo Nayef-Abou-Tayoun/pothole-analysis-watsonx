@@ -57,7 +57,7 @@ def cleanup_old_files(directory, keep_current=None):
 
 
 def generate_summary_report(report):
-    """Generate a detailed summary focusing on specific pothole characteristics."""
+    """Generate a detailed 3+ line summary focusing on specific pothole characteristics."""
     total_frames = report.get('total_frames_analyzed', 0)
     
     # Get all frame analyses
@@ -67,6 +67,7 @@ def generate_summary_report(report):
     pothole_details = []
     road_markings_clear = True
     traffic_conditions = []
+    has_street_lights = False
     
     for analysis in analyses:
         raw_text = analysis.get('raw_response', '').lower()
@@ -74,17 +75,25 @@ def generate_summary_report(report):
         
         # Extract pothole details if found
         if 'pothole' in raw_text:
-            detail = {'frame': frame_num}
+            detail = {'frame': frame_num, 'raw_text': raw_text}
             
-            # Determine size
+            # Determine size and estimate in cm
             if 'large' in raw_text:
                 detail['size'] = 'large'
+                detail['size_cm'] = '50-80 cm'
+                detail['severity'] = 'high'
             elif 'medium' in raw_text:
                 detail['size'] = 'medium'
+                detail['size_cm'] = '20-50 cm'
+                detail['severity'] = 'medium'
             elif 'small' in raw_text:
                 detail['size'] = 'small'
+                detail['size_cm'] = '10-20 cm'
+                detail['severity'] = 'low'
             else:
-                detail['size'] = 'medium'  # default
+                detail['size'] = 'medium'
+                detail['size_cm'] = '20-50 cm'
+                detail['severity'] = 'medium'
             
             # Determine location (left/center/right)
             if 'left' in raw_text:
@@ -96,7 +105,7 @@ def generate_summary_report(report):
             elif 'barrier' in raw_text:
                 detail['position'] = 'barrier area'
             else:
-                detail['position'] = 'center'  # default
+                detail['position'] = 'center'
             
             # Determine lane if mentioned
             if 'lane 1' in raw_text or 'first lane' in raw_text:
@@ -121,15 +130,17 @@ def generate_summary_report(report):
                 traffic_conditions.append('light')
             elif 'moderate' in raw_text:
                 traffic_conditions.append('moderate')
+        
+        # Check for street lights
+        if 'light' in raw_text or 'street light' in raw_text or 'lamp' in raw_text or 'lighting' in raw_text:
+            has_street_lights = True
     
     # Build summary
     if not pothole_details:
-        summary = (
-            f"Analysis Summary: Analyzed {total_frames} frames. "
-            f"No potholes detected in the road segment. "
-            f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}. "
-            f"Overall traffic conditions appear normal with well-maintained road surface."
-        )
+        line1 = f"Analysis Summary: Analyzed {total_frames} frames. No potholes detected in the road segment."
+        line2 = f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}. Overall traffic conditions appear normal with well-maintained road surface."
+        line3 = f"Street lights are {'present' if has_street_lights else 'not visible in the analyzed frames'}."
+        summary = f"{line1}\n{line2}\n{line3}"
     else:
         # Focus on the most significant pothole (largest or first found)
         primary_pothole = pothole_details[0]
@@ -142,16 +153,14 @@ def generate_summary_report(report):
         if traffic_conditions:
             traffic_desc = max(set(traffic_conditions), key=traffic_conditions.count)
         else:
-            traffic_desc = 'normal'
+            traffic_desc = 'moderate'
         
-        # Build detailed summary
-        summary = (
-            f"Analysis Summary: Pothole detected in frame {primary_pothole['frame']} - "
-            f"{primary_pothole['size']} size, located on the {primary_pothole['position']} side of {primary_pothole['lane']}. "
-            f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}. "
-            f"Overall traffic conditions: {traffic_desc}. "
-            f"Total of {len(pothole_details)} pothole{'s' if len(pothole_details) != 1 else ''} identified across {total_frames} frames analyzed."
-        )
+        # Build detailed 3-line summary
+        line1 = f"Analysis Summary: Pothole detected {primary_pothole['size']} size (estimated {primary_pothole['size_cm']}), located on the {primary_pothole['position']} side of {primary_pothole['lane']}. Severity is {primary_pothole['severity']}."
+        line2 = f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}. Overall traffic conditions: {traffic_desc}."
+        line3 = f"There {'are' if has_street_lights else 'are no visible'} street lights. Total of {len(pothole_details)} pothole{'s' if len(pothole_details) != 1 else ''} identified across {total_frames} frames."
+        
+        summary = f"{line1}\n{line2}\n{line3}"
     
     return summary
 

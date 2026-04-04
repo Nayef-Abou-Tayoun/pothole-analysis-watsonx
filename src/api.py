@@ -486,13 +486,30 @@ def analyze_video():
         sys.stdout.flush()
         
         try:
-            # Add frame URLs for display (keep raw_response for UI)
+            # Filter analyses to show only frames with medium severity potholes
             video_stem = Path(filename).stem
+            filtered_analyses = []
+            
             for analysis in analyses:
-                # Add frame URL if frame exists
-                if 'frame_path' in analysis:
-                    frame_filename = os.path.basename(analysis['frame_path'])
-                    analysis['frame_url'] = f'/frames/{video_stem}/frames/{frame_filename}'
+                raw_text = analysis.get('raw_response', '').lower()
+                
+                # Check if frame has a pothole with medium severity
+                has_medium_pothole = False
+                if 'pothole' in raw_text:
+                    # Check for medium or large size (both are medium severity)
+                    if 'medium' in raw_text or 'large' in raw_text:
+                        has_medium_pothole = True
+                
+                # Only include frames with medium severity potholes
+                if has_medium_pothole:
+                    # Add frame URL if frame exists
+                    if 'frame_path' in analysis:
+                        frame_filename = os.path.basename(analysis['frame_path'])
+                        analysis['frame_url'] = f'/frames/{video_stem}/frames/{frame_filename}'
+                    filtered_analyses.append(analysis)
+            
+            # Update report with filtered analyses
+            report['detailed_analyses'] = filtered_analyses
             
             response_data = {
                 'success': True,

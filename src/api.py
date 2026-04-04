@@ -266,11 +266,29 @@ def analyze_video():
         
         # Return analysis
         print("Sending response...")
-        return jsonify({
-            'success': True,
-            'filename': filename,
-            'analysis': report
-        })
+        import sys
+        sys.stdout.flush()
+        
+        try:
+            response_data = {
+                'success': True,
+                'filename': filename,
+                'analysis': report
+            }
+            print(f"Response data size: {len(str(response_data))} characters")
+            sys.stdout.flush()
+            
+            response = jsonify(response_data)
+            print("Response created successfully")
+            sys.stdout.flush()
+            
+            return response
+        except Exception as e:
+            print(f"Error creating response: {str(e)}")
+            import traceback
+            traceback.print_exc()
+            sys.stdout.flush()
+            raise
         
     except Exception as e:
         error_trace = traceback.format_exc()

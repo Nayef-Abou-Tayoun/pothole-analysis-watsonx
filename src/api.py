@@ -81,7 +81,7 @@ def generate_summary_report(report):
             if 'large' in raw_text:
                 detail['size'] = 'large'
                 detail['size_cm'] = '50-80 cm'
-                detail['severity'] = 'high'
+                detail['severity'] = 'medium'
             elif 'medium' in raw_text:
                 detail['size'] = 'medium'
                 detail['size_cm'] = '20-50 cm'
@@ -158,7 +158,11 @@ def generate_summary_report(report):
         # Build detailed 3-line summary
         line1 = f"Analysis Summary: Pothole detected {primary_pothole['size']} size (estimated {primary_pothole['size_cm']}), located on the {primary_pothole['position']} side of {primary_pothole['lane']}. Severity is {primary_pothole['severity']}."
         line2 = f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}. Overall traffic conditions: {traffic_desc}."
-        line3 = f"There {'are' if has_street_lights else 'are no visible'} street lights. Total of {len(pothole_details)} pothole{'s' if len(pothole_details) != 1 else ''} identified across {total_frames} frames."
+        
+        if has_street_lights:
+            line3 = "There are street lights so pothole expected to be visible during night."
+        else:
+            line3 = "No street lights visible, pothole may not be easily visible during night."
         
         summary = f"{line1}\n{line2}\n{line3}"
     

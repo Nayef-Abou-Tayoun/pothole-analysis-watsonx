@@ -83,11 +83,18 @@ async function analyzeVideo(file) {
 
             updateProgress(90, 'Processing results...');
             
+            console.log('Response received, parsing JSON...');
+            console.log('Response status:', response.status);
+            console.log('Response headers:', [...response.headers.entries()]);
+            
             const data = await response.json();
+            console.log('JSON parsed successfully');
+            console.log('Data:', data);
             
             if (data.success) {
                 analysisData = data.analysis;
                 updateProgress(100, 'Complete!');
+                console.log('Calling displayResults...');
                 setTimeout(() => displayResults(data.analysis), 500);
             } else {
                 throw new Error(data.error || 'Analysis failed');

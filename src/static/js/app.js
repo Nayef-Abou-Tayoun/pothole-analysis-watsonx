@@ -1,6 +1,13 @@
 // Global variables
 let uploadedVideoFile = null;
 let videoObjectURL = null;
+// Helper function to escape HTML
+function escapeHtml(text) {
+    const div = document.createElement('div');
+    div.textContent = text;
+    return div.innerHTML;
+}
+
 let analysisData = null;
 
 // DOM Elements
@@ -123,7 +130,7 @@ function displayResults(analysis) {
     showSection('results');
 }
 
-// Display pothole frames in a grid
+// Display pothole frames in a grid with AI analysis text
 function displayPotholeFrames(potholes) {
     const framesGrid = document.getElementById('framesGrid');
     framesGrid.innerHTML = '';
@@ -137,13 +144,18 @@ function displayPotholeFrames(potholes) {
         if (pothole.frame_url) {
             const frameCard = document.createElement('div');
             frameCard.className = 'frame-card';
+            
+            // Get AI response text
+            const aiResponse = pothole.raw_response || pothole.description || 'No analysis available';
+            
             frameCard.innerHTML = `
-                <img src="${pothole.frame_url}" alt="Pothole ${index + 1}" 
-                     onerror="this.parentElement.style.display='none'">
-                <div class="frame-info">
+                <div class="frame-header">
                     <span class="severity-badge ${pothole.severity || 'low'}">${(pothole.severity || 'low').toUpperCase()}</span>
                     <span class="frame-time">${formatTimestamp(pothole.timestamp)}</span>
                 </div>
+                <div class="ai-response">${escapeHtml(aiResponse)}</div>
+                <img src="${pothole.frame_url}" alt="Pothole ${index + 1}"
+                     onerror="this.parentElement.style.display='none'">
             `;
             
             // Click to jump to this time in video

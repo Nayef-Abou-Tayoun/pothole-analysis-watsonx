@@ -36,4 +36,5 @@ ENV PYTHONPATH=/app
 EXPOSE 8080
 
 # Run the Flask API with gunicorn for production
-CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--timeout", "300", "--chdir", "/app/src", "api:app"]
+# Using gevent worker to prevent response buffering
+CMD ["gunicorn", "--bind", "0.0.0.0:8080", "--workers", "2", "--worker-class", "gevent", "--worker-connections", "1000", "--timeout", "300", "--chdir", "/app/src", "api:app"]

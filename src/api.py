@@ -59,34 +59,47 @@ def cleanup_old_files(directory, keep_current=None):
 def generate_summary_report(report):
     """Generate a comprehensive 4-line summary paragraph consolidating all frame analyses."""
     total_frames = report.get('total_frames_analyzed', 0)
-    frames_with_issues = report.get('frames_with_potholes', 0)
-    total_potholes = report.get('total_potholes_detected', 0)
     
     # Get all frame analyses
     analyses = report.get('detailed_analyses', [])
     
-    # Count by severity
-    severity_counts = report.get('severity_breakdown', {})
-    critical = severity_counts.get('critical', 0)
-    high = severity_counts.get('high', 0)
-    medium = severity_counts.get('medium', 0)
-    low = severity_counts.get('low', 0)
-    
-    # Collect key observations from frame analyses
+    # Count frames with potholes by analyzing AI text responses
+    frames_with_potholes = 0
+    pothole_mentions = []
     observations = []
+    
     for analysis in analyses:
-        if analysis.get('potholes_detected'):
-            raw_text = analysis.get('raw_response', '')
-            # Extract key phrases about potholes
-            if 'large pothole' in raw_text.lower():
+        raw_text = analysis.get('raw_response', '').lower()
+        
+        # Count ANY mention of "pothole" regardless of location
+        if 'pothole' in raw_text:
+            frames_with_potholes += 1
+            
+            # Extract specific observations
+            if 'large pothole' in raw_text:
                 observations.append('large potholes')
-            elif 'puddle' in raw_text.lower() or 'water' in raw_text.lower():
-                observations.append('water accumulation')
-            elif 'crack' in raw_text.lower():
-                observations.append('surface cracks')
+                pothole_mentions.append('large pothole')
+            elif 'small pothole' in raw_text:
+                observations.append('small potholes')
+                pothole_mentions.append('small pothole')
+            else:
+                pothole_mentions.append('pothole')
+            
+            # Check location mentions
+            if 'barrier' in raw_text or 'concrete barrier' in raw_text:
+                observations.append('barrier damage')
+            if 'road' in raw_text and 'middle' in raw_text:
+                observations.append('road surface potholes')
+                
+        # Other observations
+        if 'puddle' in raw_text or 'water' in raw_text:
+            observations.append('water accumulation')
+        if 'crack' in raw_text:
+            observations.append('surface cracks')
     
     # Remove duplicates
     observations = list(set(observations))
+    total_potholes = len(pothole_mentions)
     
     # Build 4-line summary
     if total_potholes == 0:
@@ -97,42 +110,38 @@ def generate_summary_report(report):
             f"Routine monitoring is recommended to maintain current infrastructure standards and ensure continued road safety."
         )
     else:
+        # Determine condition based on pothole count and observations
+        if total_potholes >= 5 or 'large potholes' in observations:
+            condition = "poor"
+        elif total_potholes >= 3:
+            condition = "fair"
+        elif total_potholes >= 1:
+            condition = "acceptable"
+        else:
+            condition = "good"
+            
         # Line 1: Overview
-        condition = "poor" if critical > 0 else "fair" if high > 0 else "acceptable" if medium > 0 else "good"
-        line1 = f"Video Analysis Summary: Analyzed {total_frames} frames from the road segment, identifying issues in {frames_with_issues} frames with {total_potholes} total defect{'s' if total_potholes != 1 else ''} detected."
+        line1 = f"Video Analysis Summary: Analyzed {total_frames} frames from the road segment, identifying potholes in {frames_with_potholes} frames with {total_potholes} total pothole{'s' if total_potholes != 1 else ''} detected."
         
-        # Line 2: Severity and observations
-        severity_parts = []
-        if critical > 0:
-            severity_parts.append(f"{critical} critical")
-        if high > 0:
-            severity_parts.append(f"{high} high-severity")
-        if medium > 0:
-            severity_parts.append(f"{medium} medium-severity")
-        if low > 0:
-            severity_parts.append(f"{low} low-severity")
-        
-        severity_text = ", ".join(severity_parts) if severity_parts else "various"
-        obs_text = ", ".join(observations[:3]) if observations else "road surface defects"
-        line2 = f"The road segment is in {condition} condition with {severity_text} defects identified, including {obs_text} that require maintenance attention."
+        # Line 2: Observations
+        obs_text = ", ".join(observations[:4]) if observations else "potholes and road defects"
+        line2 = f"The road segment is in {condition} condition with defects identified, including {obs_text} that require maintenance attention."
         
         # Line 3: Impact assessment
-        if critical > 0:
-            line3 = "Critical defects pose immediate safety risks to vehicles and may cause damage or accidents if left unaddressed, particularly affecting vehicle suspension and tire integrity."
-        elif high > 0 or medium > 0:
+        if total_potholes >= 5 or 'large potholes' in observations:
+            line3 = "The identified potholes pose safety risks to vehicles and may cause damage or accidents if left unaddressed, particularly affecting vehicle suspension and tire integrity."
+        elif total_potholes >= 2:
             line3 = "The identified defects impact road quality and driving comfort, with potential for deterioration if not addressed in upcoming maintenance cycles."
         else:
-            line3 = "Minor surface issues were detected that should be monitored and addressed during routine maintenance to prevent further degradation."
+            line3 = "Minor issues were detected that should be monitored and addressed during routine maintenance to prevent further degradation."
         
         # Line 4: Recommendations
-        if critical > 0:
-            line4 = "Immediate repair action is strongly recommended for critical defects to prevent vehicle damage, ensure public safety, and avoid liability concerns."
-        elif high > 0:
-            line4 = "Prompt repair is recommended within the next maintenance cycle to prevent deterioration and maintain road quality standards."
-        elif medium > 0:
-            line4 = "Schedule repairs during the next planned maintenance window to address identified defects and maintain infrastructure standards."
+        if total_potholes >= 5 or 'large potholes' in observations:
+            line4 = "Immediate repair action is recommended to address the potholes and prevent vehicle damage, ensure public safety, and avoid liability concerns."
+        elif total_potholes >= 2:
+            line4 = "Prompt repair is recommended within the next maintenance cycle to address the potholes and maintain road quality standards."
         else:
-            line4 = "Include these minor issues in routine maintenance planning to maintain optimal road conditions and prevent future problems."
+            line4 = "Schedule repairs during the next planned maintenance window to address identified issues and maintain infrastructure standards."
         
         summary = f"{line1} {line2} {line3} {line4}"
     

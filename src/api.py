@@ -368,12 +368,9 @@ def analyze_video():
         sys.stdout.flush()
         
         try:
-            # Simplify response - remove raw_response to reduce size
-            # Add frame URLs for display
+            # Add frame URLs for display (keep raw_response for UI)
             video_stem = Path(filename).stem
             for analysis in analyses:
-                if 'raw_response' in analysis:
-                    del analysis['raw_response']
                 # Add frame URL if frame exists
                 if 'frame_path' in analysis:
                     frame_filename = os.path.basename(analysis['frame_path'])

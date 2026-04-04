@@ -116,45 +116,54 @@ function updateProgress(percent, text) {
 
 // Display results - SIMPLIFIED VERSION
 function displayResults(analysis) {
-    // Setup video player first
-    setupVideoPlayer(analysis.ranked_potholes || []);
+    // Get all frames
+    const allFrames = analysis.detailed_analyses || [];
+    
+    // Setup video player with markers for frames with potholes
+    const framesWithPotholes = allFrames.filter(f => f.potholes_detected);
+    setupVideoPlayer(framesWithPotholes);
     
     // Display summary
     const summaryText = document.getElementById('summaryText');
     summaryText.textContent = analysis.summary || 'Analysis complete.';
     
-    // Display only frames with potholes
-    displayPotholeFrames(analysis.ranked_potholes || []);
+    // Display ALL frames with AI analysis
+    displayAllFrames(allFrames);
     
     // Show results section
     showSection('results');
 }
 
-// Display pothole frames in a grid with AI analysis text
-function displayPotholeFrames(potholes) {
+// Display ALL frames with AI analysis text
+function displayAllFrames(frames) {
     const framesGrid = document.getElementById('framesGrid');
     framesGrid.innerHTML = '';
 
-    if (potholes.length === 0) {
-        framesGrid.innerHTML = '<p style="text-align: center; color: #525252; grid-column: 1/-1;">No potholes detected in this video.</p>';
+    if (!frames || frames.length === 0) {
+        framesGrid.innerHTML = '<p style="text-align: center; color: #525252; grid-column: 1/-1;">No frames analyzed.</p>';
         return;
     }
 
-    potholes.forEach((pothole, index) => {
-        if (pothole.frame_url) {
+    frames.forEach((frame, index) => {
+        if (frame.frame_url) {
             const frameCard = document.createElement('div');
             frameCard.className = 'frame-card';
             
             // Get AI response text
-            const aiResponse = pothole.raw_response || pothole.description || 'No analysis available';
+            const aiResponse = frame.raw_response || frame.analysis_text || 'No analysis available';
+            
+            // Determine if pothole detected for styling
+            const hasPothole = frame.potholes_detected || false;
+            const severity = frame.severity || (hasPothole ? 'medium' : 'none');
+            const severityLabel = hasPothole ? (severity.toUpperCase()) : 'CLEAR';
             
             frameCard.innerHTML = `
                 <div class="frame-header">
-                    <span class="severity-badge ${pothole.severity || 'low'}">${(pothole.severity || 'low').toUpperCase()}</span>
-                    <span class="frame-time">${formatTimestamp(pothole.timestamp)}</span>
+                    <span class="severity-badge ${severity}">${severityLabel}</span>
+                    <span class="frame-time">Frame ${frame.frame_number} - ${formatTimestamp(frame.timestamp)}</span>
                 </div>
                 <div class="ai-response">${escapeHtml(aiResponse)}</div>
-                <img src="${pothole.frame_url}" alt="Pothole ${index + 1}"
+                <img src="${frame.frame_url}" alt="Frame ${index + 1}"
                      onerror="this.parentElement.style.display='none'">
             `;
             

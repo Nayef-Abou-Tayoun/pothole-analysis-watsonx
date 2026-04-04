@@ -401,6 +401,11 @@ body {
 
 .severity-badge.low {
     background: #24a148;
+
+.severity-badge.none {
+    background: #e0e0e0;
+    color: #525252;
+}
 }
 
 .frame-time {

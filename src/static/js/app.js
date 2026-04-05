@@ -335,12 +335,28 @@ async function createServiceRequest() {
     }
     
     const createSRBtn = document.getElementById('createSRBtn');
-    const originalText = createSRBtn.innerHTML;
+    const maximoStatus = document.getElementById('maximoStatus');
+    const maximoCreating = document.getElementById('maximoCreating');
+    const maximoResult = document.getElementById('maximoResult');
+    const progressBar = document.getElementById('progressBar');
+    const progressPercentage = document.getElementById('progressPercentage');
     
     try {
-        // Disable button and show loading
-        createSRBtn.disabled = true;
-        createSRBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Service Request...';
+        // Hide button, show progress bar
+        maximoStatus.style.display = 'none';
+        maximoCreating.style.display = 'block';
+        maximoResult.style.display = 'none';
+        
+        // Animate progress bar with percentage
+        let progress = 0;
+        const progressInterval = setInterval(() => {
+            progress += 5;
+            if (progress <= 90) {
+                progressBar.style.width = progress + '%';
+                progressPercentage.textContent = progress + '%';
+                progressPercentage.style.left = `calc(${progress}% - 20px)`;
+            }
+        }, 100); // Update every 100ms
         
         // Count potholes
         const potholeCount = (analysisData.detailed_analyses || []).filter(f => f.potholes_detected).length;
@@ -364,10 +380,19 @@ async function createServiceRequest() {
         
         const result = await response.json();
         
+        // Complete progress bar
+        clearInterval(progressInterval);
+        progressBar.style.width = '100%';
+        progressPercentage.textContent = '100%';
+        progressPercentage.style.left = 'calc(100% - 40px)';
+        
+        // Wait a moment to show 100%
+        await new Promise(resolve => setTimeout(resolve, 500));
+        
         if (result.success) {
-            // Hide button, show success message
-            document.getElementById('maximoStatus').style.display = 'none';
-            document.getElementById('maximoResult').style.display = 'block';
+            // Hide progress, show success message
+            maximoCreating.style.display = 'none';
+            maximoResult.style.display = 'block';
             document.getElementById('ticketId').textContent = result.ticket_id;
             
             // Set up link
@@ -384,10 +409,11 @@ async function createServiceRequest() {
         
     } catch (error) {
         console.error('Error creating service request:', error);
-        alert('Failed to create service request: ' + error.message);
         
-        // Re-enable button
-        createSRBtn.disabled = false;
+        // Hide progress bar, show error
+        maximoCreating.style.display = 'none';
+        maximoStatus.style.display = 'block';
+        alert('Failed to create service request: ' + error.message);
         createSRBtn.innerHTML = originalText;
     }
 }

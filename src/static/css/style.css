@@ -38,10 +38,9 @@ body {
 }
 
 .ttc-logo {
-    height: 80px;
+    height: 60px;
     width: auto;
-    filter: brightness(0) invert(1);
-    /* Makes the logo white to match the header color scheme */
+    /* Display the original TTC logo colors */
 }
 
 .header h1 {

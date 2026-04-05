@@ -246,7 +246,7 @@ body {
 
 #videoPlayer {
     width: 100%;
-    max-height: 600px;
+    max-height: 400px;
     display: block;
 }
 

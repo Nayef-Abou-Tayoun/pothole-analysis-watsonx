@@ -25,17 +25,16 @@ class MaximoClient:
             self.enabled = False
         else:
             self.enabled = True
-            # Use work order endpoint (mxapiwo) instead of service request (mxsr)
-            # This matches the working watsonx Orchestrate pattern
-            self.api_url = f"{self.base_url}/maximo/api/os/mxapiwo"
+            # Use service request endpoint (mxapisr) per IBM documentation
+            self.api_url = f"{self.base_url}/maximo/api/os/mxapisr"
             logger.info(f"Maximo integration enabled: {self.base_url}")
             logger.info(f"Using API endpoint: {self.api_url}")
     
     def _get_headers(self) -> Dict[str, str]:
         """Get HTTP headers for Maximo API requests"""
+        # Note: API key is passed in URL, not header, per IBM documentation
         return {
             'Content-Type': 'application/json',
-            'apikey': self.api_key,  # Use 'apikey' header (not x-api-key)
             'Accept': 'application/json'
         }
     
@@ -65,15 +64,17 @@ class MaximoClient:
             return None
         
         try:
-            # Prepare work order payload (using work orders instead of service requests)
+            # Prepare service request payload per IBM documentation
             payload = {
+                "reportedby": reported_by,
                 "description": description,
-                "siteid": "BEDFORD",  # Default site
-                "status": "WAPPR"  # Waiting for approval
+                "SITEID": "BEDFORD",  # Default site
+                "location": location if location != "Unknown Location" else "REPAIR",
+                "affectedpersonid": reported_by
             }
             
-            # Add lean query parameter for efficient response
-            create_url = f"{self.api_url}?lean=1&oslc.select=wonum,siteid"
+            # Add API key to URL per IBM documentation
+            create_url = f"{self.api_url}?lean=1&apikey={self.api_key}"
             
             logger.info(f"Creating work order in Maximo: {description}")
             logger.info(f"Maximo API URL: {create_url}")
@@ -92,23 +93,21 @@ class MaximoClient:
             logger.info(f"Response body: {response.text[:500]}")
             
             if response.status_code in [200, 201]:
-                # Try to get WONUM from response body
-                wonum = None
-                siteid = None
+                # Try to get ticketid from response body
+                ticketid = None
                 
                 if response.text and 'application/json' in response.headers.get('Content-Type', ''):
                     try:
                         body = response.json()
-                        wonum = body.get('wonum')
-                        siteid = body.get('siteid')
+                        ticketid = body.get('ticketid')
                     except json.JSONDecodeError:
                         pass
                 
-                # Fallback: Use Location header to get the created work order
-                if not wonum:
-                    wo_href = response.headers.get('Location')
-                    if wo_href:
-                        lean_href = f"{wo_href}?lean=1&oslc.select=wonum,siteid"
+                # Fallback: Use Location header to get the created service request
+                if not ticketid:
+                    sr_href = response.headers.get('Location')
+                    if sr_href:
+                        lean_href = f"{sr_href}?lean=1&apikey={self.api_key}"
                         get_resp = requests.get(
                             lean_href,
                             headers=self._get_headers(),
@@ -116,22 +115,21 @@ class MaximoClient:
                         )
                         if get_resp.status_code == 200:
                             data = get_resp.json()
-                            wonum = data.get('wonum')
-                            siteid = data.get('siteid')
+                            ticketid = data.get('ticketid')
                 
-                if wonum:
-                    logger.info(f"Work order created successfully: {wonum}")
+                if ticketid:
+                    logger.info(f"Service request created successfully: {ticketid}")
                     return {
                         'success': True,
-                        'ticket_id': wonum,
+                        'ticket_id': ticketid,
                         'href': response.headers.get('Location', ''),
-                        'message': f"Work order {wonum} created successfully"
+                        'message': f"Service request {ticketid} created successfully"
                     }
                 else:
                     return {
                         'success': False,
-                        'error': 'Could not retrieve work order number',
-                        'message': 'Work order created but WONUM could not be resolved'
+                        'error': 'Could not retrieve ticket ID',
+                        'message': 'Service request created but ticket ID could not be resolved'
                     }
             else:
                 logger.error(f"Failed to create SR. Status: {response.status_code}, Response: {response.text}")

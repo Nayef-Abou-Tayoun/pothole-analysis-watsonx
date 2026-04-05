@@ -149,7 +149,7 @@ function displayResults(analysis) {
     // Show results section
     showSection('results');
     
-    // Show summary and Maximo sections after 6 seconds
+    // Show summary and Maximo sections after 10 seconds
     setTimeout(() => {
         if (summarySection) {
             summarySection.style.display = 'block';
@@ -157,7 +157,7 @@ function displayResults(analysis) {
         if (framesWithPotholes.length > 0) {
             maximoSection.style.display = 'block';
         }
-    }, 6000); // 6 seconds delay
+    }, 10000); // 10 seconds delay
     
     // Wait for video to finish playing, then auto-create service request
     const videoPlayer = document.getElementById('videoPlayer');

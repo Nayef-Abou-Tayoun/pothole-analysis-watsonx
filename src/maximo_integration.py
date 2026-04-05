@@ -113,6 +113,15 @@ class MaximoClient:
                     }
             else:
                 logger.error(f"Failed to create SR. Status: {response.status_code}, Response: {response.text}")
+                
+                # Check for authorization error
+                if response.status_code == 400 and 'BMXAA9301E' in response.text:
+                    return {
+                        'success': False,
+                        'error': 'Authorization Error',
+                        'message': 'The API key does not have permission to create service requests in Maximo. Please ensure the API key is associated with a user that has MXSR object permissions.'
+                    }
+                
                 return {
                     'success': False,
                     'error': f"Maximo API error: {response.status_code}",

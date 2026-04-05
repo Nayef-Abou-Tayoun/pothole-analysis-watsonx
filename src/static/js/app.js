@@ -149,7 +149,7 @@ function displayResults(analysis) {
     // Show results section
     showSection('results');
     
-    // Show summary and Maximo sections after 12 seconds
+    // Show summary and Maximo sections after 6 seconds
     setTimeout(() => {
         if (summarySection) {
             summarySection.style.display = 'block';
@@ -157,7 +157,7 @@ function displayResults(analysis) {
         if (framesWithPotholes.length > 0) {
             maximoSection.style.display = 'block';
         }
-    }, 12000); // 12 seconds delay
+    }, 6000); // 6 seconds delay
     
     // Wait for video to finish playing, then auto-create service request
     const videoPlayer = document.getElementById('videoPlayer');
@@ -167,12 +167,14 @@ function displayResults(analysis) {
             setTimeout(() => createServiceRequest(), 500);
         }, { once: true });
         
-        // Auto-play the video
-        videoPlayer.play().catch(err => {
-            console.log('Auto-play prevented:', err);
-            // If auto-play fails, create service request after 2 seconds
-            setTimeout(() => createServiceRequest(), 2000);
-        });
+        // Start video after 3 seconds delay
+        setTimeout(() => {
+            videoPlayer.play().catch(err => {
+                console.log('Auto-play prevented:', err);
+                // If auto-play fails, create service request after 2 seconds
+                setTimeout(() => createServiceRequest(), 2000);
+            });
+        }, 3000); // 3 seconds delay before video starts
     }
 }
 

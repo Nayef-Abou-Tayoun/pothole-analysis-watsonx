@@ -75,6 +75,8 @@ class MaximoClient:
             }
             
             logger.info(f"Creating service request in Maximo: {description}")
+            logger.info(f"Maximo API URL: {self.api_url}")
+            logger.info(f"Payload: {json.dumps(payload, indent=2)}")
             
             # Make API request
             response = requests.post(
@@ -83,6 +85,10 @@ class MaximoClient:
                 json=payload,
                 timeout=30
             )
+            
+            logger.info(f"Response status: {response.status_code}")
+            logger.info(f"Response headers: {dict(response.headers)}")
+            logger.info(f"Response body: {response.text[:500]}")
             
             if response.status_code in [200, 201]:
                 try:

@@ -14,6 +14,7 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 
 from video_processor import VideoProcessor
 from pothole_analyzer import PotholeAnalyzer
+from maximo_integration import create_sr_from_analysis
 
 # Load environment variables
 load_dotenv('config/.env')
@@ -698,6 +699,104 @@ def analyze_video_url():
         print(f"Error analyzing video from URL: {error_trace}")
         return jsonify({
             'error': 'Analysis failed',
+            'message': str(e),
+            'trace': error_trace if app.debug else None
+        }), 500
+
+
+@app.route('/create-service-request', methods=['POST'])
+def create_service_request():
+    """
+    Create a service request in Maximo Manage based on analysis results.
+    
+    Expected JSON: {
+        "summary": "Analysis summary text",
+        "pothole_count": 3,
+        "location": "Main Street",
+        "video_filename": "video.mp4"
+    }
+    Returns: JSON with SR details including ticket number and link
+    """
+    try:
+        data = request.get_json()
+        
+        if not data:
+            return jsonify({
+                'success': False,
+                'error': 'No data provided',
+                'message': 'Please provide analysis data in JSON body'
+            }), 400
+        
+        # Extract required fields
+        summary = data.get('summary', '')
+        pothole_count = data.get('pothole_count', 0)
+        location = data.get('location', 'Unknown Location')
+        video_filename = data.get('video_filename', '')
+        
+        if not summary:
+            return jsonify({
+                'success': False,
+                'error': 'Missing summary',
+                'message': 'Analysis summary is required'
+            }), 400
+        
+        # Get video and frame paths if available
+        video_path = None
+        frame_paths = []
+        
+        if video_filename:
+            video_stem = Path(video_filename).stem
+            output_dir = os.path.join(app.config['OUTPUT_FOLDER'], video_stem)
+            frames_dir = os.path.join(output_dir, 'frames')
+            
+            # Get frame paths
+            if os.path.exists(frames_dir):
+                frame_files = sorted([
+                    os.path.join(frames_dir, f)
+                    for f in os.listdir(frames_dir)
+                    if f.endswith(('.jpg', '.jpeg', '.png'))
+                ])
+                frame_paths = frame_files[:5]  # Limit to 5 frames
+        
+        # Create service request
+        print(f"Creating service request for {pothole_count} potholes at {location}")
+        result = create_sr_from_analysis(
+            summary=summary,
+            pothole_count=pothole_count,
+            location=location,
+            video_path=video_path,
+            frame_paths=frame_paths
+        )
+        
+        if result and result.get('success'):
+            ticket_id = result.get('ticket_id')
+            # Construct Maximo URL
+            maximo_url = os.getenv('MAXIMO_URL', '')
+            if maximo_url:
+                sr_link = f"{maximo_url}/maximo/ui/?event=loadapp&value=sr&additionalevent=useqbe&additionaleventvalue=ticketid={ticket_id}"
+            else:
+                sr_link = None
+            
+            return jsonify({
+                'success': True,
+                'ticket_id': ticket_id,
+                'link': sr_link,
+                'message': f'Service request {ticket_id} created successfully'
+            })
+        else:
+            error_msg = result.get('message', 'Unknown error') if result else 'Failed to create service request'
+            return jsonify({
+                'success': False,
+                'error': result.get('error', 'Unknown error') if result else 'Unknown error',
+                'message': error_msg
+            }), 500
+        
+    except Exception as e:
+        error_trace = traceback.format_exc()
+        print(f"Error creating service request: {error_trace}")
+        return jsonify({
+            'success': False,
+            'error': 'Service request creation failed',
             'message': str(e),
             'trace': error_trace if app.debug else None
         }), 500

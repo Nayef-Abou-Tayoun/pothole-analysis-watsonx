@@ -130,6 +130,17 @@ function displayResults(analysis) {
     // Display ALL frames with AI analysis
     displayAllFrames(allFrames);
     
+    // Show Maximo section if potholes detected
+    const maximoSection = document.getElementById('maximoSection');
+    if (framesWithPotholes.length > 0) {
+        maximoSection.style.display = 'block';
+        // Reset Maximo section to show button
+        document.getElementById('maximoStatus').style.display = 'block';
+        document.getElementById('maximoResult').style.display = 'none';
+    } else {
+        maximoSection.style.display = 'none';
+    }
+    
     // Show results section
     showSection('results');
 }
@@ -299,6 +310,71 @@ function downloadReport() {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+}
+
+// Create service request in Maximo
+async function createServiceRequest() {
+    if (!analysisData) {
+        alert('No analysis data available');
+        return;
+    }
+    
+    const createSRBtn = document.getElementById('createSRBtn');
+    const originalText = createSRBtn.innerHTML;
+    
+    try {
+        // Disable button and show loading
+        createSRBtn.disabled = true;
+        createSRBtn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Service Request...';
+        
+        // Count potholes
+        const potholeCount = (analysisData.detailed_analyses || []).filter(f => f.potholes_detected).length;
+        
+        // Prepare request data
+        const requestData = {
+            summary: analysisData.summary || 'Pothole detected',
+            pothole_count: potholeCount,
+            location: 'Road Location', // You can add a location input field if needed
+            video_filename: uploadedVideoFile ? uploadedVideoFile.name : ''
+        };
+        
+        // Call API
+        const response = await fetch('/create-service-request', {
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json'
+            },
+            body: JSON.stringify(requestData)
+        });
+        
+        const result = await response.json();
+        
+        if (result.success) {
+            // Hide button, show success message
+            document.getElementById('maximoStatus').style.display = 'none';
+            document.getElementById('maximoResult').style.display = 'block';
+            document.getElementById('ticketId').textContent = result.ticket_id;
+            
+            // Set up link
+            const maximoLink = document.getElementById('maximoLink');
+            if (result.link) {
+                maximoLink.href = result.link;
+                maximoLink.style.display = 'inline-block';
+            } else {
+                maximoLink.style.display = 'none';
+            }
+        } else {
+            throw new Error(result.message || 'Failed to create service request');
+        }
+        
+    } catch (error) {
+        console.error('Error creating service request:', error);
+        alert('Failed to create service request: ' + error.message);
+        
+        // Re-enable button
+        createSRBtn.disabled = false;
+        createSRBtn.innerHTML = originalText;
+    }
 }
 
 // Initialize

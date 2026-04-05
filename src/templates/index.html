@@ -88,6 +88,30 @@
                 </div>
             </div>
 
+            <!-- Maximo Service Request Section -->
+            <div class="maximo-section" id="maximoSection" style="display: none;">
+                <h2><i class="fas fa-ticket-alt"></i> Maximo Service Request</h2>
+                <div class="maximo-box">
+                    <div id="maximoStatus">
+                        <button onclick="createServiceRequest()" class="btn btn-success" id="createSRBtn">
+                            <i class="fas fa-plus-circle"></i>
+                            Create Service Request in Maximo
+                        </button>
+                    </div>
+                    <div id="maximoResult" style="display: none;">
+                        <div class="sr-success">
+                            <i class="fas fa-check-circle"></i>
+                            <h3>Service Request Created Successfully!</h3>
+                            <p><strong>Ticket ID:</strong> <span id="ticketId"></span></p>
+                            <a id="maximoLink" href="#" target="_blank" class="btn btn-primary">
+                                <i class="fas fa-external-link-alt"></i>
+                                View in Maximo
+                            </a>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
             <!-- Analyzed Frames -->
             <div class="frames-section">
                 <h2><i class="fas fa-images"></i> Analyzed Frames</h2>

@@ -305,6 +305,67 @@ body {
     line-height: 1.6;
     color: #161616;
 }
+/* Maximo Section */
+.maximo-section {
+    margin-bottom: 40px;
+}
+
+.maximo-section h2 {
+    font-size: 24px;
+    margin-bottom: 20px;
+    color: #161616;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+
+.maximo-box {
+    background: #f4f4f4;
+    border-left: 4px solid #24a148;
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.btn-success {
+    background: #24a148;
+    color: white;
+}
+
+.btn-success:hover {
+    background: #198038;
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(36, 161, 72, 0.4);
+}
+
+.sr-success {
+    text-align: center;
+    padding: 20px;
+}
+
+.sr-success i {
+    font-size: 48px;
+    color: #24a148;
+    margin-bottom: 15px;
+}
+
+.sr-success h3 {
+    font-size: 22px;
+    color: #161616;
+    margin-bottom: 15px;
+}
+
+.sr-success p {
+    font-size: 16px;
+    color: #525252;
+    margin-bottom: 20px;
+}
+
+.sr-success #ticketId {
+    font-weight: 600;
+    color: #0f62fe;
+    font-size: 18px;
+}
+
 
 /* Frames Section */
 .frames-section {

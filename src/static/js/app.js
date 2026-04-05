@@ -127,13 +127,19 @@ function displayResults(analysis) {
     const summaryText = document.getElementById('summaryText');
     summaryText.textContent = analysis.summary || 'Analysis complete.';
     
+    // Hide summary section initially
+    const summarySection = document.querySelector('.summary-section');
+    if (summarySection) {
+        summarySection.style.display = 'none';
+    }
+    
     // Display ALL frames with AI analysis
     displayAllFrames(allFrames);
     
-    // Show Maximo section if potholes detected
+    // Show Maximo section if potholes detected (also hidden initially)
     const maximoSection = document.getElementById('maximoSection');
     if (framesWithPotholes.length > 0) {
-        maximoSection.style.display = 'block';
+        maximoSection.style.display = 'none'; // Hidden initially
         document.getElementById('maximoStatus').style.display = 'none';
         document.getElementById('maximoResult').style.display = 'none';
     } else {
@@ -142,6 +148,16 @@ function displayResults(analysis) {
     
     // Show results section
     showSection('results');
+    
+    // Show summary and Maximo sections after 12 seconds
+    setTimeout(() => {
+        if (summarySection) {
+            summarySection.style.display = 'block';
+        }
+        if (framesWithPotholes.length > 0) {
+            maximoSection.style.display = 'block';
+        }
+    }, 12000); // 12 seconds delay
     
     // Wait for video to finish playing, then auto-create service request
     const videoPlayer = document.getElementById('videoPlayer');

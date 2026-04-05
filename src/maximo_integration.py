@@ -85,21 +85,29 @@ class MaximoClient:
             )
             
             if response.status_code in [200, 201]:
-                sr_data = response.json()
-                ticket_id = sr_data.get('ticketid', 'Unknown')
-                logger.info(f"Service request created successfully: {ticket_id}")
-                return {
-                    'success': True,
-                    'ticket_id': ticket_id,
-                    'href': sr_data.get('href', ''),
-                    'message': f"Service request {ticket_id} created successfully"
-                }
+                try:
+                    sr_data = response.json()
+                    ticket_id = sr_data.get('ticketid', 'Unknown')
+                    logger.info(f"Service request created successfully: {ticket_id}")
+                    return {
+                        'success': True,
+                        'ticket_id': ticket_id,
+                        'href': sr_data.get('href', ''),
+                        'message': f"Service request {ticket_id} created successfully"
+                    }
+                except json.JSONDecodeError as e:
+                    logger.error(f"Invalid JSON response from Maximo: {response.text}")
+                    return {
+                        'success': False,
+                        'error': 'Invalid response from Maximo',
+                        'message': f'Maximo returned invalid JSON: {response.text[:200]}'
+                    }
             else:
                 logger.error(f"Failed to create SR. Status: {response.status_code}, Response: {response.text}")
                 return {
                     'success': False,
                     'error': f"Maximo API error: {response.status_code}",
-                    'message': response.text
+                    'message': f"Status {response.status_code}: {response.text[:200]}"
                 }
                 
         except requests.exceptions.Timeout:

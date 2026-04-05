@@ -114,7 +114,7 @@ function updateProgress(percent, text) {
     progressText.textContent = text;
 }
 
-// Display results - SIMPLIFIED VERSION
+// Display results - WAIT FOR VIDEO TO END, THEN AUTO-CREATE SERVICE REQUEST
 function displayResults(analysis) {
     // Get all frames
     const allFrames = analysis.detailed_analyses || [];
@@ -123,7 +123,7 @@ function displayResults(analysis) {
     const framesWithPotholes = allFrames.filter(f => f.potholes_detected);
     setupVideoPlayer(framesWithPotholes);
     
-    // Display summary
+    // Display summary (hidden initially)
     const summaryText = document.getElementById('summaryText');
     summaryText.textContent = analysis.summary || 'Analysis complete.';
     
@@ -134,8 +134,7 @@ function displayResults(analysis) {
     const maximoSection = document.getElementById('maximoSection');
     if (framesWithPotholes.length > 0) {
         maximoSection.style.display = 'block';
-        // Reset Maximo section to show button
-        document.getElementById('maximoStatus').style.display = 'block';
+        document.getElementById('maximoStatus').style.display = 'none';
         document.getElementById('maximoResult').style.display = 'none';
     } else {
         maximoSection.style.display = 'none';
@@ -143,6 +142,22 @@ function displayResults(analysis) {
     
     // Show results section
     showSection('results');
+    
+    // Wait for video to finish playing, then auto-create service request
+    const videoPlayer = document.getElementById('videoPlayer');
+    if (videoPlayer && framesWithPotholes.length > 0) {
+        videoPlayer.addEventListener('ended', function() {
+            // Video finished - now create service request automatically
+            setTimeout(() => createServiceRequest(), 500);
+        }, { once: true });
+        
+        // Auto-play the video
+        videoPlayer.play().catch(err => {
+            console.log('Auto-play prevented:', err);
+            // If auto-play fails, create service request after 2 seconds
+            setTimeout(() => createServiceRequest(), 2000);
+        });
+    }
 }
 
 // Display ALL frames with AI analysis text

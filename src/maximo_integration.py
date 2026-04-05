@@ -65,17 +65,13 @@ class MaximoClient:
         
         try:
             # Prepare service request payload per IBM documentation
-            # Note: location field is optional and may cause validation errors if invalid
+            # Location field completely removed - causes validation error BMXAA2661E
             payload = {
                 "reportedby": reported_by,
                 "description": description,
                 "SITEID": "BEDFORD",  # Default site
                 "affectedpersonid": reported_by
             }
-            
-            # Only add location if it's a valid value (not "Unknown Location")
-            if location and location != "Unknown Location":
-                payload["location"] = location
             
             # Add API key to URL per IBM documentation
             create_url = f"{self.api_url}?lean=1&apikey={self.api_key}"

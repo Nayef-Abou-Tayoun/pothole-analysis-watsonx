@@ -25,9 +25,12 @@ class MaximoClient:
             self.enabled = False
         else:
             self.enabled = True
-            # Maximo REST API endpoint
-            self.api_url = f"{self.base_url}/maximo/oslc/os/mxsr"
+            # Maximo REST API endpoint - try different formats
+            # Standard: /maximo/oslc/os/mxsr
+            # Alternative: /maximo/api/os/mxsr or /maxrest/oslc/os/mxsr
+            self.api_url = f"{self.base_url}/maximo/api/os/mxsr"
             logger.info(f"Maximo integration enabled: {self.base_url}")
+            logger.info(f"Using API endpoint: {self.api_url}")
     
     def _get_headers(self) -> Dict[str, str]:
         """Get HTTP headers for Maximo API requests"""

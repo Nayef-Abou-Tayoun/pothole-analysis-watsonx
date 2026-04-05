@@ -44,7 +44,8 @@ class MaximoClient:
         location: str,
         priority: int = 2,
         details: str = "",
-        reported_by: str = "POTHOLE_ANALYZER"
+        reported_by: str = "POTHOLE_ANALYZER",
+        assetnum: str = "GARDINER_EXPRESSWAY"
     ) -> Optional[Dict]:
         """
         Create a service request in Maximo Manage
@@ -55,6 +56,7 @@ class MaximoClient:
             priority: Priority level (1=High, 2=Medium, 3=Low)
             details: Detailed description with analysis results
             reported_by: Who reported the issue
+            assetnum: Asset number in Maximo (default: GARDINER_EXPRESSWAY)
             
         Returns:
             Dict with SR details if successful, None otherwise
@@ -69,6 +71,8 @@ class MaximoClient:
             payload = {
                 "reportedby": reported_by,
                 "description": description,
+                "description_longdescription": details,
+                "assetnum": assetnum,
                 "SITEID": "BEDFORD",  # Default site
                 "affectedpersonid": reported_by
             }
@@ -259,7 +263,7 @@ def create_sr_from_analysis(
         priority = 3  # Low
     
     # Create description
-    description = f"Road Maintenance Required - {pothole_count} Pothole(s) Detected"
+    description = "A pothole detected"
     
     # Create detailed description
     details = f"""AUTOMATED POTHOLE DETECTION REPORT

@@ -33,10 +33,10 @@ class MaximoClient:
             logger.info(f"Using API endpoint: {self.api_url}")
     
     def _get_headers(self) -> Dict[str, str]:
-        """Get HTTP headers for Maximo API requests"""
+        """Get HTTP headers for Maximo Integration API requests"""
         return {
             'Content-Type': 'application/json',
-            'apikey': self.api_key,
+            'x-api-key': self.api_key,  # Integration API uses x-api-key header
             'Accept': 'application/json'
         }
     

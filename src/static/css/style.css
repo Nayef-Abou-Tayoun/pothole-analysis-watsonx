@@ -7,7 +7,8 @@
 
 body {
     font-family: 'IBM Plex Sans', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    background: linear-gradient(135deg, #ED1C24 0%, #C8102E 100%);
+    /* TTC Red gradient background */
     min-height: 100vh;
     padding: 20px;
     color: #161616;
@@ -73,7 +74,7 @@ body {
 
 .upload-icon {
     font-size: 80px;
-    color: #0f62fe;
+    color: #ED1C24;
     margin-bottom: 20px;
 }
 
@@ -112,7 +113,7 @@ body {
 
 .file-label:hover {
     background: #e8e8e8;
-    border-color: #0f62fe;
+    border-color: #ED1C24;
 }
 
 .file-label i {
@@ -135,14 +136,14 @@ body {
 }
 
 .btn-primary {
-    background: #0f62fe;
+    background: #ED1C24;
     color: white;
 }
 
 .btn-primary:hover {
-    background: #0353e9;
+    background: #C8102E;
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(15, 98, 254, 0.4);
+    box-shadow: 0 4px 12px rgba(237, 28, 36, 0.4);
 }
 
 .btn-secondary {
@@ -179,7 +180,7 @@ body {
 
 .progress-icon {
     font-size: 80px;
-    color: #0f62fe;
+    color: #ED1C24;
     margin-bottom: 20px;
 }
 
@@ -204,7 +205,7 @@ body {
 
 .progress-fill {
     height: 100%;
-    background: linear-gradient(90deg, #0f62fe, #0353e9);
+    background: linear-gradient(90deg, #ED1C24, #C8102E);
     border-radius: 6px;
     transition: width 0.3s ease;
     width: 0%;
@@ -301,7 +302,7 @@ body {
 
 .summary-box {
     background: #f4f4f4;
-    border-left: 4px solid #0f62fe;
+    border-left: 4px solid #ED1C24;
     padding: 20px;
     border-radius: 8px;
 }

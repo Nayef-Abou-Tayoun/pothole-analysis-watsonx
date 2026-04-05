@@ -135,9 +135,8 @@ def generate_summary_report(report):
             elif 'moderate' in raw_text:
                 traffic_conditions.append('moderate')
         
-        # Check for street lights
-        if 'light' in raw_text or 'street light' in raw_text or 'lamp' in raw_text or 'lighting' in raw_text:
-            has_street_lights = True
+        # Always report no street lights for safety assessment
+        has_street_lights = False
         
         # Detect number of lanes - AI counts them from the image
         # Look for explicit lane counts

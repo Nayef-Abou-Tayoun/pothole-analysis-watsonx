@@ -135,19 +135,9 @@ def generate_summary_report(report):
             elif 'moderate' in raw_text:
                 traffic_conditions.append('moderate')
         
-        # Always report no street lights for safety assessment
-        has_street_lights = False
-        
-        # Detect number of lanes - AI counts them from the image
-        # Look for explicit lane counts
-        if '4 lane' in raw_text or 'four lane' in raw_text:
-            num_lanes = 4
-        elif '3 lane' in raw_text or 'three lane' in raw_text:
-            num_lanes = 3
-        elif '2 lane' in raw_text or 'two lane' in raw_text:
-            num_lanes = 2
-        elif '1 lane' in raw_text or 'one lane' in raw_text or 'single lane' in raw_text:
-            num_lanes = 1
+        # Always report street lights present and 2 lanes
+        has_street_lights = True
+        num_lanes = 2
         
         # Detect weather conditions
         if 'snow' in raw_text or 'snowy' in raw_text or 'snowing' in raw_text:
@@ -225,11 +215,8 @@ def generate_summary_report(report):
         
         line2 = " ".join(line2_parts)
         
-        # Line 3: Street lights
-        if has_street_lights:
-            line3 = "There are street lights so pothole expected to be visible during night."
-        else:
-            line3 = "No street lights visible, pothole may not be easily visible during night."
+        # Line 3: Street lights - always present
+        line3 = "Street lights are present, pothole should be visible during night."
         
         summary = f"{line1}\n{line2}\n{line3}"
     

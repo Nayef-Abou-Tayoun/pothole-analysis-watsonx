@@ -84,8 +84,6 @@ class PotholeAnalyzer:
         # Enhanced prompt with Toronto pothole criteria and context - EXPRESSWAY ONLY
         prompt_text = """You are analyzing road conditions for the City of Toronto's pothole repair program on the GARDINER EXPRESSWAY.
 
-IMPORTANT: Only include EXPRESSWAY-specific Toronto repair information that is RELEVANT to what you observe.
-
 EXPRESSWAY POTHOLE REPAIR CRITERIA (City of Toronto):
 • Repair required if over 600 cm² surface area and 8 cm deep
 • This applies to expressways like Gardiner Expressway, DVP, Allen Expressway
@@ -94,22 +92,19 @@ EXPRESSWAY REPAIR TIMELINES:
 • Emergency (24 hours): Large potholes posing immediate risk to vehicles or pedestrians
 • High Priority (4 days): Standard expressway repairs (over 40,000 vehicles/day)
 
-WHAT CAUSES POTHOLES (mention only if you see cracks/water damage):
+WHAT CAUSES POTHOLES:
 Potholes form when water seeps into cracks in the road, freezes, and expands, causing the pavement to break apart. They are especially common in spring due to repeated freeze-thaw cycles.
 
-EXPRESSWAY CHARACTERISTICS:
-• Multiple lanes (typically 2-4 lanes per direction)
-• High traffic volume (over 40,000 vehicles/day)
-• Concrete traffic barriers on sides
+Analyze this expressway road image and provide a detailed report. Your response MUST include:
 
-Now analyze this expressway road image and provide:
-1) POTHOLE DETECTION: If found, estimate size in cm² and depth in cm, exact location (which lane, left/center/right). State if it meets expressway repair criteria (over 600 cm² and 8 cm deep). If you see cracks or water damage, mention freeze-thaw cause.
+1) Basic observations: pothole size (estimate in cm), location (which lane, left/center/right), road markings, number of lanes, side features, traffic conditions, weather, street lights.
 
-2) ROAD CLASSIFICATION: Confirm expressway characteristics (lanes, barriers). If pothole detected, state the applicable expressway repair timeline (Emergency: 24hrs or High Priority: 4 days).
+2) Toronto Expressway Context (REQUIRED - include in your response):
+   - If pothole detected: State whether it meets expressway repair criteria (over 600 cm² and 8 cm deep)
+   - If pothole detected: Mention the applicable repair timeline (Emergency: 24 hours if large/dangerous, or High Priority: 4 days for standard expressway repairs)
+   - If you see cracks or water damage: Mention that potholes form when water seeps into cracks, freezes, and expands (freeze-thaw cycles)
 
-3) SIDE FEATURES: Describe what's on the sides (concrete barriers, pedestrian pavement, cycle lane, or open).
-
-4) REPAIR RECOMMENDATION: Overall road condition, safety concerns, recommended priority (Emergency/High/Medium/Low). Only mention expressway-specific repair information based on observations."""
+3) Format your response as a narrative paragraph that naturally integrates the Toronto expressway repair criteria and timelines based on what you observe."""
 
         body = {
             "messages": [

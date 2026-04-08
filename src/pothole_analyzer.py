@@ -81,13 +81,45 @@ class PotholeAnalyzer:
             "Authorization": f"Bearer {self.access_token}"
         }
         
-        # Simple and effective prompt - based on successful test
+        # Enhanced prompt with Toronto pothole criteria and context
+        prompt_text = """You are analyzing road conditions for the City of Toronto's pothole repair program on an EXPRESSWAY (default: Gardiner Expressway). Use the following criteria when assessing potholes:
+
+POTHOLE SIZE CRITERIA (City of Toronto Standards):
+• Expressways: Repair required if over 600 cm² surface area and 8 cm deep
+• Arterial Roads: Repair required if over 800 cm² surface area and 8 cm deep
+• Collector/Local Roads: Repair required if over 1,000 cm² surface area and 8 cm deep
+
+REPAIR PRIORITY FOR EXPRESSWAYS:
+• Emergency (24 hours): Large potholes posing immediate risk to vehicles or pedestrians
+• High Priority (4 days): Standard expressway repairs (over 40,000 vehicles/day)
+• Expressways include: DVP, Gardiner Expressway, Allen Expressway, Highway 27, Black Creek Dr.
+
+EXPRESSWAY CHARACTERISTICS TO VERIFY:
+• Multiple lanes (typically 2-4 lanes per direction)
+• High traffic volume (over 40,000 vehicles/day)
+• Concrete traffic barriers on sides
+• Higher speed limits
+• Limited access points
+
+WHAT TO ANALYZE:
+• Pothole presence, size (estimate in cm²), depth (estimate in cm), and exact location (which lane, left/center/right position)
+• Apply EXPRESSWAY criteria: repair needed if over 600 cm² and 8 cm deep
+• Safety factors: proximity to barriers, lane position, traffic flow impact
+• Weather conditions: wet/dry surface, snow, ice (affects freeze-thaw damage)
+• Road surface condition: cracks, deterioration, previous repairs
+
+Now analyze this expressway road image and provide:
+1) Any potholes? If yes, estimate size in cm² and depth in cm, exact location (which lane, left/center/right), and severity (does it meet expressway repair criteria of 600 cm² and 8 cm deep?)
+2) Confirm expressway characteristics: How many lanes? Concrete barriers present? High-speed road indicators?
+3) What's on the sides? (concrete barriers, pedestrian pavement, cycle lane, or open)
+4) Overall road condition, safety concerns, and recommended priority (Emergency/High/Medium/Low)"""
+
         body = {
             "messages": [
                 {
                     "role": "user",
                     "content": [
-                        {"type": "text", "text": "Analyze this road image: 1) Any potholes? If yes, describe size and location. 2) How many lanes do you see? 3) What's on the sides (barriers, pavement, cycle lane, or open)?"},
+                        {"type": "text", "text": prompt_text},
                         {"type": "image_url", "image_url": {"url": f"data:image/jpeg;base64,{image_base64}"}}
                     ]
                 }

@@ -265,12 +265,71 @@ def create_sr_from_analysis(
     # Create description
     description = "A pothole detected"
     
-    # Create detailed description
+    # Create detailed description with comprehensive pothole information
     details = f"""{summary}
 
 Location: {location}
 Detection Method: AI Video Analysis (watsonx.ai)
-Priority: {'High' if priority == 1 else 'Medium' if priority == 2 else 'Low'}"""
+Priority: {'High' if priority == 1 else 'Medium' if priority == 2 else 'Low'}
+
+=== Description of Service/Summary ===
+Potholes form when water seeps into cracks in the road, freezes, and expands, causing the pavement to break apart. They are especially common in spring due to repeated freeze‑thaw cycles. Residents can help keep roads safe by reporting potholes to 311 for timely repair.
+
+=== Potholes Road Surface Damage Criteria ===
+Pothole size thresholds vary depending on the road classification, helping crews determine when repairs are required and how to prioritize work for safety and efficiency. The required minimum measurements for pothole repair on each road type are:
+
+• Expressways: over 600 cm² in surface area and 8 cm deep
+• Arterial Roads: over 800 cm² in surface area and 8 cm deep
+• Collector and Local Roads: over 1,000 cm² in surface area and 8 cm deep
+
+=== What Causes Potholes ===
+Potholes are created when water penetrates the top layer of asphalt through cracks in the road. After the moisture freezes and expands, sections of the pavement are forced up. The weight of vehicles going over this section of road breaks the pavement and the asphalt is forced out. Potholes are more frequent in the spring, after the freeze/thaw action following winter.
+
+=== Steps to Fix a Pothole ===
+To combat the problem, the City of Toronto's Transportation Division has a number of work crews that are assigned to the job of fixing potholes and similar road defects as close to year-round as the weather permits.
+
+• Crews place asphalt and rake it into the pothole.
+• The asphalt is tamped down and smoothed out until the road surface is improved.
+• During winter months potholes are temporarily patched with cold mix asphalt to make the road safe.
+• More permanent repairs are performed with hot asphalt when warmer conditions prevail.
+
+=== How to Report a Pothole Road Damage Request ===
+To report potholes on City of Toronto roads, bike lanes or expressways, please submit a service request online at: toronto.ca/311 by selecting the "Roads, Sidewalks, Bicycle & Traffic Safety" Service Request category or call 311.
+
+City of Toronto Expressways include:
+• Don Valley Parkway (DVP) - south of the 401
+• Highway 27 - north from Highway 401 west of Martin Grove Rd., to Steeles Ave.
+• Gardiner Expressway
+• Hwy 2a (Kingston Rd.)
+• Allen Expressway
+• Black Creek Dr.
+
+If you wish to report potholes on a Provincial Highway or ramp, such as the 400, 401, 403, 404, 409, 410, 427, or QEW, visit Potholes - provincial highways.
+
+=== What Happens When a Request is Created ===
+• The City will review your request and assess the pothole.
+• Repairs are prioritized based on road type and safety risk.
+• If you signed up for updates, we'll notify you when work begins.
+
+=== Expected Timelines for Repair ===
+The Estimated Resolution Timeframe is an average time for pothole repairs across all road classifications. The timelines below outline the expected repair periods for each road type, all of which meet or exceed provincial maintenance standards. Highly frequented roads are attended to more quickly:
+
+• Emergency Repair: Within 24 hours (for major roadways where the pothole is large and poses risk to vehicles or pedestrians)
+• City Expressways (over 40,000 vehicles per day, e.g., DVP, Allen): 4 days
+• Arterial Roads (over 8,000 vehicles per day, e.g. Yonge St.): 4 days
+• Collector Road (2,500 to 8,000 vehicles per day, e.g., John St.): 14 days
+• Local Street (Less than 2,500 vehicles per day, e.g., Mercer St.): 21 days
+• Public Laneways: 21 days
+
+If a pothole requires more extensive work, crews will complete a temporary repair within the timelines listed above, followed by a permanent repair at a later date.
+
+=== Additional Information and Facts on Potholes in the City of Toronto ===
+• The City has a comprehensive pothole repair program to maintain safe and reliable roadways for all users.
+• Toronto is a big city with a huge network of roads, bikeways and surface transit options, and the City is committed to keeping our road network safe for all residents and visitors.
+• Potholes are created when water penetrates the top layer of asphalt through cracks in the road. After the moisture freezes and expands, sections of the pavement are forced up and the weight of vehicles going over this section of road breaks the pavement, creating a pothole.
+• A winter with more freeze-thaw cycles also increases the number of potholes on city streets.
+• Pothole repair crews also handle other road maintenance activities such as snow clearing and removal, street sweeping and other maintenance and roadway safety work.
+• The public is asked to be safe by respecting work zones and giving crews space while they make repairs."""
     
     # Create service request
     result = client.create_service_request(

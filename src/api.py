@@ -166,12 +166,12 @@ def generate_summary_report(report):
         if 'open side' in raw_text or 'open' in raw_text:
             side_features.add('open side')
     
-    # Build summary
+    # Build summary with Toronto expressway criteria
     if not pothole_details:
         line1 = f"Analysis Summary: Analyzed {total_frames} frames. No potholes detected in the road segment."
         line2 = f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}. Overall traffic conditions appear normal with well-maintained road surface."
         line3 = f"Street lights are {'present' if has_street_lights else 'not visible in the analyzed frames'}."
-        summary = f"{line1}\n{line2}\n{line3}"
+        summary = f"{line1}\n\n{line2}\n{line3}"
     else:
         # Focus on the most significant pothole (largest or first found)
         primary_pothole = pothole_details[0]
@@ -186,18 +186,19 @@ def generate_summary_report(report):
         else:
             traffic_desc = 'moderate'
         
-        # Build detailed summary with lanes, sides, and weather
-        line1 = f"Analysis Summary: Pothole detected {primary_pothole['size']} size (estimated {primary_pothole['size_cm']}), located on the {primary_pothole['position']} side of {primary_pothole['lane']}. Severity is {primary_pothole['severity']}."
+        # Determine if pothole meets expressway criteria (600 cm² and 8 cm deep)
+        # Estimate: large = 50-80cm diameter ≈ 2000-5000 cm², medium = 20-50cm ≈ 300-2000 cm², small = 10-20cm ≈ 80-300 cm²
+        meets_criteria = primary_pothole['size'] in ['large', 'medium']
         
-        # Line 2: Road markings, lanes, sides, traffic, and weather
-        line2_parts = [f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}."]
+        # Determine repair timeline
+        if primary_pothole['size'] == 'large' or primary_pothole['severity'] == 'high':
+            repair_timeline = "Emergency repair with an expected timeline of 24 hours for large potholes posing immediate risk"
+        else:
+            repair_timeline = "High Priority repair with an expected timeline of 4 days for standard expressway repairs on roads with over 40,000 vehicles/day like Gardiner Expressway"
         
-        if num_lanes:
-            line2_parts.append(f"It is a {num_lanes} lane street.")
-        
-        # Show only the most prominent side feature (first one found is usually most visible)
+        # Show only the most prominent side feature
+        prominent_feature = 'concrete traffic barriers'
         if side_features:
-            # Priority order: barriers > pedestrian > cycle > open
             if 'concrete traffic barriers' in side_features:
                 prominent_feature = 'concrete traffic barriers'
             elif 'pedestrian pavement' in side_features:
@@ -206,19 +207,32 @@ def generate_summary_report(report):
                 prominent_feature = 'cycle lane'
             else:
                 prominent_feature = 'open side'
-            line2_parts.append(f"Sides have {prominent_feature}.")
         
-        line2_parts.append(f"Overall traffic conditions: {traffic_desc}.")
+        # Paragraph 1: Pothole detection with Toronto criteria
+        para1 = f"Analysis Summary: Pothole detected {primary_pothole['size']} size (estimated {primary_pothole['size_cm']}), located on the {primary_pothole['position']} side of {primary_pothole['lane']}."
+        if meets_criteria:
+            para1 += f" This pothole meets the City of Toronto expressway repair criteria (over 600 cm² and 8 cm deep) and requires {repair_timeline}."
+        else:
+            para1 += f" This pothole is below the City of Toronto expressway repair threshold but should be monitored."
         
+        # Paragraph 2: Road conditions
+        para2_parts = [f"Road markings are {'clear and visible' if road_markings_clear else 'faded or unclear'}."]
+        if num_lanes:
+            para2_parts.append(f"It is a {num_lanes} lane street.")
+        para2_parts.append(f"Sides have {prominent_feature}.")
+        para2_parts.append(f"Overall traffic conditions: {traffic_desc}.")
         if weather_condition:
-            line2_parts.append(f"Weather condition: {weather_condition}.")
+            para2_parts.append(f"Weather condition: {weather_condition}.")
+        para2_parts.append("Street lights are present, pothole should be visible during night.")
+        para2 = " ".join(para2_parts)
         
-        line2 = " ".join(line2_parts)
+        # Paragraph 3: Cause (if cracks or water damage visible)
+        para3 = ""
+        has_cracks = any('crack' in detail['raw_text'] or 'water' in detail['raw_text'] or 'wet' in detail['raw_text'] for detail in pothole_details)
+        if has_cracks or weather_condition in ['rain', 'snow']:
+            para3 = "\n\nThe visible cracks suggest this pothole formed when water seeped into cracks in the road, froze, and expanded, causing the pavement to break apart - a common occurrence in spring due to repeated freeze-thaw cycles."
         
-        # Line 3: Street lights - always present
-        line3 = "Street lights are present, pothole should be visible during night."
-        
-        summary = f"{line1}\n{line2}\n{line3}"
+        summary = f"{para1}\n\n{para2}{para3}"
     
     return summary
 

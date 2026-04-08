@@ -81,40 +81,35 @@ class PotholeAnalyzer:
             "Authorization": f"Bearer {self.access_token}"
         }
         
-        # Enhanced prompt with Toronto pothole criteria and context
-        prompt_text = """You are analyzing road conditions for the City of Toronto's pothole repair program on an EXPRESSWAY (default: Gardiner Expressway).
+        # Enhanced prompt with Toronto pothole criteria and context - EXPRESSWAY ONLY
+        prompt_text = """You are analyzing road conditions for the City of Toronto's pothole repair program on the GARDINER EXPRESSWAY.
 
-IMPORTANT: Only include Toronto repair information that is RELEVANT to what you observe in the image.
+IMPORTANT: Only include EXPRESSWAY-specific Toronto repair information that is RELEVANT to what you observe.
 
-POTHOLE SIZE CRITERIA (City of Toronto Standards):
-• Expressways: Repair required if over 600 cm² surface area and 8 cm deep
-• Arterial Roads: Repair required if over 800 cm² surface area and 8 cm deep
-• Collector/Local Roads: Repair required if over 1,000 cm² surface area and 8 cm deep
+EXPRESSWAY POTHOLE REPAIR CRITERIA (City of Toronto):
+• Repair required if over 600 cm² surface area and 8 cm deep
+• This applies to expressways like Gardiner Expressway, DVP, Allen Expressway
 
-REPAIR PRIORITY FOR EXPRESSWAYS:
+EXPRESSWAY REPAIR TIMELINES:
 • Emergency (24 hours): Large potholes posing immediate risk to vehicles or pedestrians
 • High Priority (4 days): Standard expressway repairs (over 40,000 vehicles/day)
 
-CONTEXT TO USE WHEN RELEVANT:
-• If you see cracks or water damage: Mention that potholes form when water seeps into cracks, freezes, and expands
-• If weather appears wet/icy/snowy: Note that freeze-thaw cycles increase pothole formation
-• If pothole detected: State whether it meets expressway repair criteria (600 cm² and 8 cm deep)
-• If pothole is large/dangerous: Mention Emergency repair timeline (24 hours)
-• If pothole is moderate: Mention High Priority timeline (4 days for expressways)
+WHAT CAUSES POTHOLES (mention only if you see cracks/water damage):
+Potholes form when water seeps into cracks in the road, freezes, and expands, causing the pavement to break apart. They are especially common in spring due to repeated freeze-thaw cycles.
 
-EXPRESSWAY CHARACTERISTICS TO VERIFY:
+EXPRESSWAY CHARACTERISTICS:
 • Multiple lanes (typically 2-4 lanes per direction)
 • High traffic volume (over 40,000 vehicles/day)
 • Concrete traffic barriers on sides
 
 Now analyze this expressway road image and provide:
-1) POTHOLE DETECTION: If found, estimate size in cm² and depth in cm, exact location (which lane, left/center/right). State if it meets expressway repair criteria (600 cm² and 8 cm deep). If you see cracks or water damage, briefly mention the freeze-thaw cause.
+1) POTHOLE DETECTION: If found, estimate size in cm² and depth in cm, exact location (which lane, left/center/right). State if it meets expressway repair criteria (over 600 cm² and 8 cm deep). If you see cracks or water damage, mention freeze-thaw cause.
 
-2) ROAD CLASSIFICATION: Confirm expressway characteristics (lanes, barriers). If pothole detected, state the applicable repair timeline based on severity.
+2) ROAD CLASSIFICATION: Confirm expressway characteristics (lanes, barriers). If pothole detected, state the applicable expressway repair timeline (Emergency: 24hrs or High Priority: 4 days).
 
 3) SIDE FEATURES: Describe what's on the sides (concrete barriers, pedestrian pavement, cycle lane, or open).
 
-4) REPAIR RECOMMENDATION: Overall road condition, safety concerns, recommended priority (Emergency/High/Medium/Low). Only mention relevant Toronto repair information based on what you observe."""
+4) REPAIR RECOMMENDATION: Overall road condition, safety concerns, recommended priority (Emergency/High/Medium/Low). Only mention expressway-specific repair information based on observations."""
 
         body = {
             "messages": [

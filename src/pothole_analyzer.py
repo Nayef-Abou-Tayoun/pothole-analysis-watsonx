@@ -82,7 +82,9 @@ class PotholeAnalyzer:
         }
         
         # Enhanced prompt with Toronto pothole criteria and context
-        prompt_text = """You are analyzing road conditions for the City of Toronto's pothole repair program on an EXPRESSWAY (default: Gardiner Expressway). Use the following criteria when assessing potholes:
+        prompt_text = """You are analyzing road conditions for the City of Toronto's pothole repair program on an EXPRESSWAY (default: Gardiner Expressway).
+
+IMPORTANT: Only include Toronto repair information that is RELEVANT to what you observe in the image.
 
 POTHOLE SIZE CRITERIA (City of Toronto Standards):
 • Expressways: Repair required if over 600 cm² surface area and 8 cm deep
@@ -92,27 +94,27 @@ POTHOLE SIZE CRITERIA (City of Toronto Standards):
 REPAIR PRIORITY FOR EXPRESSWAYS:
 • Emergency (24 hours): Large potholes posing immediate risk to vehicles or pedestrians
 • High Priority (4 days): Standard expressway repairs (over 40,000 vehicles/day)
-• Expressways include: DVP, Gardiner Expressway, Allen Expressway, Highway 27, Black Creek Dr.
+
+CONTEXT TO USE WHEN RELEVANT:
+• If you see cracks or water damage: Mention that potholes form when water seeps into cracks, freezes, and expands
+• If weather appears wet/icy/snowy: Note that freeze-thaw cycles increase pothole formation
+• If pothole detected: State whether it meets expressway repair criteria (600 cm² and 8 cm deep)
+• If pothole is large/dangerous: Mention Emergency repair timeline (24 hours)
+• If pothole is moderate: Mention High Priority timeline (4 days for expressways)
 
 EXPRESSWAY CHARACTERISTICS TO VERIFY:
 • Multiple lanes (typically 2-4 lanes per direction)
 • High traffic volume (over 40,000 vehicles/day)
 • Concrete traffic barriers on sides
-• Higher speed limits
-• Limited access points
-
-WHAT TO ANALYZE:
-• Pothole presence, size (estimate in cm²), depth (estimate in cm), and exact location (which lane, left/center/right position)
-• Apply EXPRESSWAY criteria: repair needed if over 600 cm² and 8 cm deep
-• Safety factors: proximity to barriers, lane position, traffic flow impact
-• Weather conditions: wet/dry surface, snow, ice (affects freeze-thaw damage)
-• Road surface condition: cracks, deterioration, previous repairs
 
 Now analyze this expressway road image and provide:
-1) Any potholes? If yes, estimate size in cm² and depth in cm, exact location (which lane, left/center/right), and severity (does it meet expressway repair criteria of 600 cm² and 8 cm deep?)
-2) Confirm expressway characteristics: How many lanes? Concrete barriers present? High-speed road indicators?
-3) What's on the sides? (concrete barriers, pedestrian pavement, cycle lane, or open)
-4) Overall road condition, safety concerns, and recommended priority (Emergency/High/Medium/Low)"""
+1) POTHOLE DETECTION: If found, estimate size in cm² and depth in cm, exact location (which lane, left/center/right). State if it meets expressway repair criteria (600 cm² and 8 cm deep). If you see cracks or water damage, briefly mention the freeze-thaw cause.
+
+2) ROAD CLASSIFICATION: Confirm expressway characteristics (lanes, barriers). If pothole detected, state the applicable repair timeline based on severity.
+
+3) SIDE FEATURES: Describe what's on the sides (concrete barriers, pedestrian pavement, cycle lane, or open).
+
+4) REPAIR RECOMMENDATION: Overall road condition, safety concerns, recommended priority (Emergency/High/Medium/Low). Only mention relevant Toronto repair information based on what you observe."""
 
         body = {
             "messages": [

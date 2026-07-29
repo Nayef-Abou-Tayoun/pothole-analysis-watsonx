@@ -132,5 +132,3 @@ class VideoProcessor:
             new_height = int(height * (max_size / width))
         
         return cv2.resize(frame, (new_width, new_height), interpolation=cv2.INTER_AREA)
-
-# Made with Bob
